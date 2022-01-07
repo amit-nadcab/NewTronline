@@ -833,6 +833,30 @@ async function check_login_status(req, res) {
   }
 }
 
+
+
+async function is_user_exist(req, res) {
+  // console.log("called");
+  try {
+    const waddress = req.body.waddress ? req.body.waddress : "";
+    const result = await Registration.findOne({
+      waddress: waddress,
+    }).then((resp) => {
+      if (resp) {
+        return res.json({
+          data: 1,
+        });
+      } else {
+        return res.json({
+          data: 0,
+        });
+      }
+    });
+  } catch (error) {
+    console.log("Error in is_user_exist ", error.message);
+  }
+}
+
 async function withdrawal_request(req, res) {
   try {
     const investorId = req.body.investorId;
@@ -3226,6 +3250,7 @@ module.exports = {
   delete_all_data,
   get_investorId,
   getWithdrawal,
+  is_user_exist,
   get_randomId,
   retopup,
 };
