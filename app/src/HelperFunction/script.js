@@ -29,6 +29,24 @@ export function getBalance(address) {
   };
 }
 
+
+export function checkJoinAddress(address) {
+  return fetch(`${url}/is_user_exist`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-cache",
+      "Access-Control-Allow-Origin": "*",
+    },
+    body: JSON.stringify({
+      waddress: address,
+    }),
+  })
+    .then((d) => d.json())
+    .catch((e) => e);
+}
+
+
 export function checkLoginStatus(address) {
   return fetch(`${url}/check_login_status`, {
     method: "POST",

@@ -7,6 +7,7 @@ import CardIdinfo from "../Component/Card_Id_info";
 import { BsTelegram } from "react-icons/bs";
 import { BiSupport } from "react-icons/bi";
 import {
+  checkJoinAddress,
   checkLoginStatus,
   CONTRACT_ADDRESS,
   getBalance,
@@ -92,7 +93,7 @@ export default function Home() {
     },
     {
       name: "Sponsor Rewards",
-      selector: (row) => (row.total_income).toFixed(2),
+      selector: (row) => row.total_income.toFixed(2),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -506,44 +507,41 @@ export default function Home() {
               .then(function (response) {
                 let investor = response.data;
                 if (response.status) {
-                  window.contract
-                    .isUserExists(state.wallet_address)
-                    .call()
-                    .then((res) => {
-                      // console.log("res true: ", res);
-                      if (!res) {
-                        window.contract
-                          .UserRegister(state.wallet_address, investor)
-                          .send({
-                            callValue: window.tronWeb.toSun(trxamount),
-                            feeLimit: 50000000,
-                          })
-                          .then(function (tx) {
-                            console.log("tx: ", tx);
-                            setspin("");
-                            setdisable(false);
-                            setjoinAmount(0);
-                            setvip2(0);
-                            setvip1(0);
-                            setvip3(0);
-                            NotificationManager.success(
-                              "Transaction has been sent",
-                              "Wait For Approval"
-                            );
-                          })
-                          .catch((e) => {
-                            setspin("");
-                            setdisable(false);
-                            NotificationManager.error(e);
-                          });
-                      } else {
-                        setspin("");
-                        setdisable(false);
-                        NotificationManager.error(
-                          "This wallet address already exist!!"
-                        );
-                      }
-                    });
+                  checkJoinAddress(state.wallet_address).then((res) => {
+                    // console.log("res true: ", res);
+                    if (!res) {
+                      window.contract
+                        .UserRegister(state.wallet_address, investor)
+                        .send({
+                          callValue: window.tronWeb.toSun(trxamount),
+                          feeLimit: 50000000,
+                        })
+                        .then(function (tx) {
+                          console.log("tx: ", tx);
+                          setspin("");
+                          setdisable(false);
+                          setjoinAmount(0);
+                          setvip2(0);
+                          setvip1(0);
+                          setvip3(0);
+                          NotificationManager.success(
+                            "Transaction has been sent",
+                            "Wait For Approval"
+                          );
+                        })
+                        .catch((e) => {
+                          setspin("");
+                          setdisable(false);
+                          NotificationManager.error(e);
+                        });
+                    } else {
+                      setspin("");
+                      setdisable(false);
+                      NotificationManager.error(
+                        "This wallet address already exist!!"
+                      );
+                    }
+                  });
                 } else {
                   setspin("");
                   setdisable(false);
@@ -591,7 +589,11 @@ export default function Home() {
           getInvestorId(ref_id)
             .then((res) => {
               if (res.status) {
-                withdrawalRequest(wtrxamt, Number(res.data), state.wallet_address)
+                withdrawalRequest(
+                  wtrxamt,
+                  Number(res.data),
+                  state.wallet_address
+                )
                   .then((res) => {
                     if (res.status === "success") {
                       setspin("");
@@ -639,7 +641,11 @@ export default function Home() {
       if (vipwithdraw_amt1 > 0) {
         if (vipwithdraw_amt1 >= 100) {
           setspinvipw1("spinner-border spinner-border-sm");
-          vipWithdrawalRequest1(vipwithdraw_amt1, Number(state.investor_id), state.wallet_address)
+          vipWithdrawalRequest1(
+            vipwithdraw_amt1,
+            Number(state.investor_id),
+            state.wallet_address
+          )
             .then((res) => {
               if (res.status === "success") {
                 setspinvipw1("");
@@ -681,7 +687,11 @@ export default function Home() {
         if (vipwithdraw_amt2 >= 100) {
           setspinvipw2("spinner-border spinner-border-sm");
           // if (res.status) {
-          vipWithdrawalRequest2(vipwithdraw_amt2, Number(state.investor_id), state.wallet_address)
+          vipWithdrawalRequest2(
+            vipwithdraw_amt2,
+            Number(state.investor_id),
+            state.wallet_address
+          )
             .then((res) => {
               if (res.status === "success") {
                 setspinvipw2("");
@@ -723,7 +733,11 @@ export default function Home() {
       if (vipwithdraw_amt3 > 0) {
         if (vipwithdraw_amt3 >= 100) {
           setspinvipw3("spinner-border spinner-border-sm");
-          vipWithdrawalRequest3(vipwithdraw_amt3, Number(state.investor_id), state.wallet_address)
+          vipWithdrawalRequest3(
+            vipwithdraw_amt3,
+            Number(state.investor_id),
+            state.wallet_address
+          )
             .then((res) => {
               if (res.status === "success") {
                 setspinvipw3("");
@@ -868,7 +882,11 @@ export default function Home() {
           <div className="banner_text text-center middle_text">
             <h1 className="tirw">World's First 100% Tron Funding Program!</h1>
             <p>
-              World's First Single line plan in which all the joining and Vip funds are stored in Smart Contract and members can withdraw their reward directly from Smart contract. 100% Distribution Plan. Now Get Rewarded from 20 people in community. Join VIP clubs and get your daily shares.
+              World's First Single line plan in which all the joining and Vip
+              funds are stored in Smart Contract and members can withdraw their
+              reward directly from Smart contract. 100% Distribution Plan. Now
+              Get Rewarded from 20 people in community. Join VIP clubs and get
+              your daily shares.
             </p>
           </div>
         </div>
@@ -936,8 +954,8 @@ export default function Home() {
                 <span style={{ fontSize: "15px" }}>
                   {state.wallet_address
                     ? state.wallet_address.substr(0, 10) +
-                    "......." +
-                    state.wallet_address.substr(25)
+                      "......." +
+                      state.wallet_address.substr(25)
                     : "Press Refresh for Wallet Address if Tronlink is connected"}
                 </span>{" "}
               </h6>
@@ -1019,8 +1037,9 @@ export default function Home() {
                 <>
                   <div className="col-lg-2 col-md-3 col-sm-12">
                     <button
-                      className={`btn  my-2 ${vip1 === 2000 ? "bg-info" : ""} ${btndis?.vip1 ? "btn-success" : "btn-light"
-                        }`}
+                      className={`btn  my-2 ${vip1 === 2000 ? "bg-info" : ""} ${
+                        btndis?.vip1 ? "btn-success" : "btn-light"
+                      }`}
                       style={{ width: "100%" }}
                       onClick={() => {
                         if (!btndis?.vip1) {
@@ -1050,8 +1069,9 @@ export default function Home() {
                   </div>
                   <div className="col-lg-2 col-md-3 col-sm-12">
                     <button
-                      className={`btn  my-2 ${vip2 === 5000 ? "bg-info" : ""} ${btndis?.vip2 ? "btn-success" : "btn-light"
-                        }`}
+                      className={`btn  my-2 ${vip2 === 5000 ? "bg-info" : ""} ${
+                        btndis?.vip2 ? "btn-success" : "btn-light"
+                      }`}
                       style={{ width: "100%" }}
                       onClick={() => {
                         if (!btndis?.vip2) {
@@ -1081,8 +1101,9 @@ export default function Home() {
                   </div>
                   <div className="col-lg-2 col-md-3 col-sm-12">
                     <button
-                      className={`btn  my-2 ${vip3 === 10000 ? "bg-info" : ""
-                        } ${btndis?.vip3 ? "btn-success" : "btn-light"}`}
+                      className={`btn  my-2 ${
+                        vip3 === 10000 ? "bg-info" : ""
+                      } ${btndis?.vip3 ? "btn-success" : "btn-light"}`}
                       style={{ width: "100%" }}
                       onClick={() => {
                         if (!btndis?.vip3) {
@@ -1131,8 +1152,9 @@ export default function Home() {
                 <>
                   <div className="col-lg-2 col-md-3 col-sm-12">
                     <button
-                      className={`btn btn-light my-2 ${pkg500 === 500 ? "bg-info" : ""
-                        }`}
+                      className={`btn btn-light my-2 ${
+                        pkg500 === 500 ? "bg-info" : ""
+                      }`}
                       style={{ width: "100%" }}
                       onClick={() => {
                         setpkg500(500);
@@ -1337,10 +1359,10 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data?.vip_club
                         ? (
-                          (Number(count.setting_data.vip_club) * 15) /
-                          100 /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 15) /
+                            100 /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1355,11 +1377,11 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data?.vip_club && count.total_vip1
                         ? (
-                          (Number(count.setting_data.vip_club) * 15) /
-                          100 /
-                          Number(count.total_vip1) /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 15) /
+                            100 /
+                            Number(count.total_vip1) /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1376,10 +1398,10 @@ export default function Home() {
                         ? state.personaldetails
                           ? state.personaldetails.remain_vip1_income
                             ? (
-                              Number(
-                                state.personaldetails.remain_vip1_income
-                              ) / 1e6
-                            ).toFixed(2) + " TRX"
+                                Number(
+                                  state.personaldetails.remain_vip1_income
+                                ) / 1e6
+                              ).toFixed(2) + " TRX"
                             : 0 + " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
@@ -1401,10 +1423,10 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data?.vip_club
                         ? (
-                          (Number(count.setting_data.vip_club) * 35) /
-                          100 /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 35) /
+                            100 /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1419,11 +1441,11 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data?.vip_club && count.total_vip2
                         ? (
-                          (Number(count.setting_data.vip_club) * 35) /
-                          100 /
-                          Number(count.total_vip2) /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 35) /
+                            100 /
+                            Number(count.total_vip2) /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1440,10 +1462,10 @@ export default function Home() {
                         ? state.personaldetails
                           ? state.personaldetails.remain_vip2_income
                             ? (
-                              Number(
-                                state.personaldetails.remain_vip2_income
-                              ) / 1e6
-                            ).toFixed(2) + " TRX"
+                                Number(
+                                  state.personaldetails.remain_vip2_income
+                                ) / 1e6
+                              ).toFixed(2) + " TRX"
                             : 0 + " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
@@ -1465,10 +1487,10 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data?.vip_club
                         ? (
-                          (Number(count.setting_data.vip_club) * 50) /
-                          100 /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 50) /
+                            100 /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1483,11 +1505,11 @@ export default function Home() {
                     {count?.setting_data
                       ? count.setting_data.vip_club && count.total_vip3
                         ? (
-                          (Number(count.setting_data.vip_club) * 50) /
-                          100 /
-                          Number(count.total_vip3) /
-                          1e6
-                        ).toFixed(2)
+                            (Number(count.setting_data.vip_club) * 50) /
+                            100 /
+                            Number(count.total_vip3) /
+                            1e6
+                          ).toFixed(2)
                         : 0
                       : 0}
                   </p>
@@ -1504,10 +1526,10 @@ export default function Home() {
                         ? state.personaldetails
                           ? state.personaldetails.remain_vip3_income
                             ? (
-                              Number(
-                                state.personaldetails.remain_vip3_income
-                              ) / 1e6
-                            ).toFixed(2) + " TRX"
+                                Number(
+                                  state.personaldetails.remain_vip3_income
+                                ) / 1e6
+                              ).toFixed(2) + " TRX"
                             : 0 + " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
@@ -1966,8 +1988,8 @@ export default function Home() {
                       ? state.personaldetails
                         ? state.personaldetails.total_deposited
                           ? Number(state.personaldetails.total_deposited) /
-                          1e6 +
-                          " TRX"
+                              1e6 +
+                            " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
                       : 0 + " TRX"
@@ -1984,7 +2006,7 @@ export default function Home() {
                       ? state.personaldetails
                         ? state.personaldetails.total_withdraw
                           ? Number(state.personaldetails.total_withdraw) +
-                          " TRX"
+                            " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
                       : 0 + " TRX"
@@ -2020,8 +2042,8 @@ export default function Home() {
                       ? state.personaldetails
                         ? state.personaldetails.total_reinvest
                           ? (
-                            Number(state.personaldetails.total_reinvest) / 1e6
-                          ).toFixed(2) + " TRX"
+                              Number(state.personaldetails.total_reinvest) / 1e6
+                            ).toFixed(2) + " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
                       : 0 + " TRX"
@@ -2069,7 +2091,9 @@ export default function Home() {
                 <h5>
                   {state.personaldetails
                     ? state.personaldetails.communitydeposit
-                      ? (state.personaldetails.communitydeposit / 1e6).toFixed(0) + " TRX"
+                      ? (state.personaldetails.communitydeposit / 1e6).toFixed(
+                          0
+                        ) + " TRX"
                       : 0
                     : 0}
                 </h5>
@@ -2081,7 +2105,8 @@ export default function Home() {
                 <h5>
                   {state.personaldetails
                     ? state.personaldetails.communitywithdrawal
-                      ? (state.personaldetails.communitywithdrawal).toFixed(0) + " TRX"
+                      ? state.personaldetails.communitywithdrawal.toFixed(0) +
+                        " TRX"
                       : 0
                     : 0}
                 </h5>
@@ -2131,22 +2156,22 @@ export default function Home() {
                         })
                         : null} */}
                       {state.community.leveldown &&
-                        state.community.leveldown.length > 0
+                      state.community.leveldown.length > 0
                         ? state.community.leveldown.map((item, i) => {
-                          return (
-                            <tr className="trrr">
-                              <td>
-                                {item.level === 0
-                                  ? "SELF"
-                                  : "LEVEL" + item.level}
-                              </td>
-                              <td>{item.id}</td>
-                              <td>{item.deposit}</td>
-                              <td>{item.reinvest}</td>
-                              <td>{item.reinvestment}</td>
-                            </tr>
-                          );
-                        })
+                            return (
+                              <tr className="trrr">
+                                <td>
+                                  {item.level === 0
+                                    ? "SELF"
+                                    : "LEVEL" + item.level}
+                                </td>
+                                <td>{item.id}</td>
+                                <td>{item.deposit}</td>
+                                <td>{item.reinvest}</td>
+                                <td>{item.reinvestment}</td>
+                              </tr>
+                            );
+                          })
                         : null}
                     </tbody>
                   ) : (
@@ -2175,7 +2200,7 @@ export default function Home() {
                   columns={sponsorcolumn}
                   data={
                     state.community.sponsor_level &&
-                      state.community.sponsor_level.length !== 0
+                    state.community.sponsor_level.length !== 0
                       ? state.community.sponsor_level
                       : []
                   }
