@@ -1,0 +1,90 @@
+body {
+  overflow-x: hidden;
+  color: #fff;
+  font-family: poppins, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+@media (min-width:350px){
+  .dark_body::before {
+    content: "";
+    z-index: -11;
+    position: fixed;
+    height: 100%;
+    width: 25%;
+    max-width: 320 px;
+    /* background: url(https://firsttron.com/img/body_icon2.svg) no-repeat scroll
+      left top/contain; */
+    left: 0;
+    top: 0;
+  }
+  .dark_body::after {
+    content: "";
+    z-index: -11;
+    position: fixed;
+    height: 100%;
+    width: 30%;
+    max-width: 350 px;
+    /* background: url(https://firsttron.com/img/body_icon1.svg) no-repeat scroll
+      right bottom/contain; */
+    right: 0;
+    bottom: 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .dark_body::after {
+    width: 87%;
+  }
+  .dark_body::before {
+    width: 76%;
+  }
+}
+
+.dark_body {
+  background: #000000;
+}
+.grad_btn:hover, .grad_btn:focus, .grad_btn:active {
+  background: 0 0;
+  border: 1px solid #32defa;
+  /* color: #32defa; */
+  box-shadow: none!important;
+}
+a, a:active, a:focus, a:hover {
+  outline: none;
+  transition: all .5s ease;
+  text-decoration: none;
+}
+a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+.grad_btn {
+  position: relative;
+  z-index: 1;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: 0 0;
+  color: #fff;
+  letter-spacing: 2px;
+  cursor: pointer;
+  padding: 10px 25px;
+  display: inline-block;
+}
+.mt_20 {
+  margin-top: 20px;
+}
+.footer_logo {
+  width: 250px;
+}
+footer {
+  text-align: center;
+  padding: 40px 0;
+}
+
+img {
+  vertical-align: middle;
+  border-style: none;
+}

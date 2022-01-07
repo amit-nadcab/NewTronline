@@ -1,0 +1,17 @@
+@media (max-width: 950px) {
+  .vimg {
+    width: 60% !important;
+  }
+  .tirw{
+      font-size: 27px !important;
+  }
+  .grad_btn{
+      padding: 10px 30px !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .vimg {
+    width: 80% !important;
+  }
+}
