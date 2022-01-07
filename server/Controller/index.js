@@ -32,6 +32,15 @@ async function generateEventQuery(result) {
           let investorId = 0;
           let sobj = "";
           let txid1 = "";
+          let last_id = 0;
+          await Registration.findOne({})
+            .sort({
+              investorId: -1
+            })
+            .then((resp) => {
+              if (resp)
+                last_id = resp.investorId;
+            });
           while (index.length > k) {
             if (index[k].length > 2) {
               let value = result[i]["result"][index[k]];
@@ -88,7 +97,6 @@ async function generateEventQuery(result) {
             await Registration.findOne(JSON.parse(select_qry)).then(
               async (data) => {
                 if (!data) {
-                  console.log("insert_qry", insert_qry);
                   await Registration.create(JSON.parse(insert_qry));
                   let reg_data = await Registration.count({
                     referrerId: refId_from_reg,

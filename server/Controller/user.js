@@ -833,11 +833,11 @@ async function is_user_exist(req, res) {
     }).then((resp) => {
       if (resp) {
         return res.json({
-          data: 1,
+          data: true,
         });
       } else {
         return res.json({
-          data: 0,
+          data: false,
         });
       }
     });
@@ -867,7 +867,7 @@ async function get_last_Id(req, res) {
         }
       });
   } catch (error) {
-    console.log("Error in is_user_exist ", error.message);
+    console.log("Error in get_last_Id ", error.message);
   }
 }
 
