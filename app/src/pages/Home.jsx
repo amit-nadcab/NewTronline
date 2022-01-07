@@ -2267,7 +2267,7 @@ export default function Home() {
               >
                 <a
                   className="grad_btn px-0 text-light"
-                  href="https://tronscan.org/#/contract/TK3rBucxzpQk2BYMuAUwGc62mz3wYMf4wU"
+                  href="https://shasta.tronscan.org/#/contract/TPA3ESorUPgNX8e3a9o3nqCrfDncnGdDoY"
                   target="_blank"
                   style={{ borderRadius: "10px" }}
                 >

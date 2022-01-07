@@ -1,16 +1,15 @@
-const express = require("express");
-const app = express();
 const bodyParser = require("body-parser");
-//var expressWs = require('express-ws')(app);
+const mongoose = require("mongoose");
+const fetch = require('cross-fetch');
+const express = require("express");
 const env = require("dotenv");
 const cors = require("cors");
+const app = express();
 const port = 3001;
-const fetch = require('cross-fetch');
-
 env.config();
-const { foreverExcute } = require("./Controller/index");
-
-const mongoose = require("mongoose");
+const {
+  foreverExcute
+} = require("./Controller/index");
 const db = `mongodb+srv://techsavvy:macbook@cluster0.pahku.mongodb.net/tronnine?retryWrites=true&w=majority`;
 mongoose
   .connect(db, {
@@ -19,9 +18,13 @@ mongoose
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.log(err));
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(express.json());
 app.use(
   cors({
@@ -30,9 +33,7 @@ app.use(
 );
 
 const userRouter = require("./router/userRouter");
-const calculate_all_income_from_deposit = require("./Controller/user");
 app.use("/api", userRouter);
-
 // ---------------------------- Test  -----------------------
 app.get("/get", function (req, res) {
   console.log("error34");
@@ -49,7 +50,7 @@ app.get("/get", function (req, res) {
     });
   }
 });
-let i = 1; 
+let i = 1;
 // setInterval(()=>{
 //   console.log("Number of times executed::", i)
 //   fetch("http://localhost:3001/api/calculate_all_income_from_deposit").then(d=>d.json()).then((res)=>
