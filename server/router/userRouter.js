@@ -29,6 +29,7 @@ const {
   is_user_exist,
   getWithdrawal,
   get_randomId,
+  get_last_Id,
   retopup,
 } = require("../Controller/user");
 
@@ -65,6 +66,7 @@ router.post("/get_investorId", get_investorId);
 router.post("/getWithdrawal", getWithdrawal);
 router.post("/is_user_exist", is_user_exist);
 router.post("/get_randomId", get_randomId);
+router.post("/get_last_Id", get_last_Id);
 router.post("/retopup", retopup);
 
 module.exports = router;

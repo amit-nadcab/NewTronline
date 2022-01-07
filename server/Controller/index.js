@@ -6,7 +6,7 @@ const Deposit = require("../models/deposit");
 const VipHistory = require("../models/vip_history");
 
 // var CONTRACT = "TNzheE3zk4YqCLYT2sMQQUGHMuReAgxPVC";
-var CONTRACT = "TK3rBucxzpQk2BYMuAUwGc62mz3wYMf4wU";
+var CONTRACT = "TPA3ESorUPgNX8e3a9o3nqCrfDncnGdDoY";
 
 const tronWeb = new TronWeb({
   fullHost: "https://api.trongrid.io",
