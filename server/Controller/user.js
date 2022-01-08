@@ -1586,6 +1586,7 @@ async function vip3_income_withdrawal_request(req, res) {
                       payout_status: 0,
                       withdrawal_type: "VIP 3 WITHDRAWAL",
                     });
+                    await withdrawlhistory.save();
                     const trancsaction = new Transaction({
                       investorId: sponsorId,
                       random_id: sponsor_random_id,
