@@ -5,9 +5,9 @@ const {
   calculate_leveldown_income_from_deposit,
   calculate_levelup_income_from_deposit,
   calculate_all_income_from_deposit,
-  // vip1_income_withdrawal_request,
-  // vip2_income_withdrawal_request,
-  // vip3_income_withdrawal_request,
+  vip1_income_withdrawal_request,
+  vip2_income_withdrawal_request,
+  vip3_income_withdrawal_request,
   get_vip_sponsor_level_incomes,
   get_community_level_incomes,
   get_upline_downline_income,
@@ -51,9 +51,9 @@ router.post("/get_community_level_incomes", get_community_level_incomes);
 router.post("/get_upline_downline_income", get_upline_downline_income);
 router.post("/getWithdrawalConditions", getWithdrawalConditions);
 router.post("/get_vip_income_withdraw", get_vip_income_withdraw);
-// router.post("/xuqpa_reqst", vip1_income_withdrawal_request);
-// router.post("/qmnps_reqst", vip2_income_withdrawal_request);
-// router.post("/spoef_reqst", vip3_income_withdrawal_request);
+router.post("/xuqpa_reqst", vip1_income_withdrawal_request);
+router.post("/qmnps_reqst", vip2_income_withdrawal_request);
+router.post("/spoef_reqst", vip3_income_withdrawal_request);
 router.post("/get_allupdown_income", get_allupdown_income);
 router.post("/get_total_vip_count", get_total_vip_count);
 router.post("/check_login_status", check_login_status);
