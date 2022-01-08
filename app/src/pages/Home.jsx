@@ -40,6 +40,7 @@ import {
   VIP_INCOME_WITHDRAWN,
   WALLET_INCOME,
 } from "../redux/constant";
+import Counter from "../Component/Counter";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -827,6 +828,7 @@ export default function Home() {
       NotificationManager.error("Please Select Deactive packages !!");
     }
   }
+  
 
   return (
     <>
@@ -1344,6 +1346,13 @@ export default function Home() {
           </div>
           <div className="sm_container">
             {/* first row */}
+            <div className="row">
+               <div className="col-12 d-flex justify-content-center my-2">
+                     <div className="rlt">
+                        Time to release vip's income : <Counter time={new Date().getTime()} cb={() => { }} />
+                     </div>
+               </div>
+            </div>
             <div className="row">
               <div className="col-lg-4 col-md-4 col-sm-12">
                 <div className="vipbox myin">
@@ -2071,12 +2080,51 @@ export default function Home() {
                 <h5>
                   {state.personaldetails
                     ? state.personaldetails.total_community
+                      ? state.personaldetails.total_community
+                      : 0
                     : 0}
                 </h5>
               </div>
             </div>
           </div>
           {/* Third row */}
+          <div className="row cus_row">
+            <div className="col-md-6 col-sm-6 col-lg-6">
+              <div className="Personal_Details_inner Personal_bg">
+                <h4>My Income withdrawals</h4>
+                <h5>
+                  {state
+                    ? state.investor_id > 0
+                      ? state.personaldetails
+                        ? state.personaldetails.total_deposited
+                          ? Number(state.personaldetails.total_deposited) /
+                              1e6 +
+                            " TRX"
+                          : 0 + " TRX"
+                        : 0 + " TRX"
+                      : 0 + " TRX"
+                    : 0 + " TRX"}
+                </h5>
+              </div>
+            </div>
+            <div className="col-md-6 col-sm-6 col-lg-6">
+              <div className="Personal_Details_inner">
+                <h4>My VIP Withdrawals</h4>
+                <h5>
+                  {state
+                    ? state.investor_id > 0
+                      ? state.personaldetails
+                        ? state.personaldetails.total_withdraw
+                          ? Number(state.personaldetails.total_withdraw) +
+                            " TRX"
+                          : 0 + " TRX"
+                        : 0 + " TRX"
+                      : 0 + " TRX"
+                    : 0 + " TRX"}
+                </h5>
+              </div>
+            </div>
+          </div>
 
           <div className="row cus_row">
             <div className="col-lg-4 col-md-4 col-sm-12">
