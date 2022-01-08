@@ -926,7 +926,7 @@ async function withdrawal_request(req, res) {
                         transaction_id: result1,
                         ip_address: ip,
                         withdrawal_type: "INCOME WITHDRAWAL",
-                        payout_status: 1,
+                        payout_status: 0,
                       });
                       withdrawlhistory.save();
                       await withraw_lock(investorId, 0)
