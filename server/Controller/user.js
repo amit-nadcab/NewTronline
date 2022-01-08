@@ -919,6 +919,7 @@ async function withdrawal_request(req, res) {
                         investorId: investorId,
                         random_id: random_id,
                         total_amount: total_amt,
+                        waddress: waddress,
                         withdrawal_amount: withdrawal_amount,
                         reinvest_amount: reinvest_amount,
                         admin_charge: admin_charge,

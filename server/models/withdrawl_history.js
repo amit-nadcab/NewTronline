@@ -7,6 +7,7 @@ const withdrawlhistorySchema = new mongoose.Schema({
      reinvest_amount : {type: Number },   
      withdrawal_amount : { type : Number },
      admin_charge : { type : Number },
+     waddress : { type : String },
      ip_address : { type : String },
      withdrawal_type : { type : String },
      block_timestamp : { type : Number },
