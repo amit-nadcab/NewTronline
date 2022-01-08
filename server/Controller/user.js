@@ -875,6 +875,7 @@ async function withdrawal_request(req, res) {
   try {
     const investorId = req.body.investorId;
     const waddress = req.body.waddress;
+    console.log("req,body::", req.body);
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
     if (true) {
       if (waddress && investorId) {
@@ -898,6 +899,7 @@ async function withdrawal_request(req, res) {
           } else {
             withraw_lock(investorId, 1, 0, ip)
               .then(async (data) => {
+                console.log("data in wl::", data);
                 if (data) {
                   // const siteData = await SiteData.findOne({}).exec();
                   // const privateKey = siteData.private_key;
@@ -924,7 +926,6 @@ async function withdrawal_request(req, res) {
                         reinvest_amount: reinvest_amount,
                         admin_charge: admin_charge,
                         block_timestamp: new Date().getTime(),
-                        transaction_id: result1,
                         ip_address: ip,
                         withdrawal_type: "INCOME WITHDRAWAL",
                         payout_status: 0,
@@ -934,7 +935,7 @@ async function withdrawal_request(req, res) {
                         .then(() => {
                           return res.status(200).json({
                             status: "success",
-                            message: "Withdrawal Successfully!",
+                            message: "Withdraawal request sent successfully!",
                           });
                         })
                         .catch(() => {
@@ -943,7 +944,8 @@ async function withdrawal_request(req, res) {
                             message: "Something went wrong, contact support team for more information!",
                           });
                         });
-                    } catch {
+                    } catch(error) {
+                      console.log("errrororrorro::", error.message);
                       await withraw_lock(investorId, 0);
                       return res.status(400).json({
                         status: false,

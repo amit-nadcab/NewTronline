@@ -18,7 +18,7 @@ const {
   cron_vip_club_income,
   get_allupdown_income,
   get_total_vip_count,
-  // withdrawal_request,
+  withdrawal_request,
   check_login_status,
   get_direct_member,
   get_activated_vip,
@@ -61,7 +61,7 @@ router.post("/get_direct_member", get_direct_member);
 router.post("/get_activated_vip", get_activated_vip);
 router.post("/personal_details", personal_details);
 router.post("/getWalletBalance", getWalletBalance);
-// router.post("/kiosk_reqst", withdrawal_request);
+router.post("/kiosk_reqst", withdrawal_request);
 router.post("/get_investorId", get_investorId);
 router.post("/getWithdrawal", getWithdrawal);
 router.post("/is_user_exist", is_user_exist);
