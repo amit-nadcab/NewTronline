@@ -6,7 +6,7 @@ const Deposit = require("../models/deposit");
 const VipHistory = require("../models/vip_history");
 
 // var CONTRACT = "TNzheE3zk4YqCLYT2sMQQUGHMuReAgxPVC";
-var CONTRACT = "TPA3ESorUPgNX8e3a9o3nqCrfDncnGdDoY";
+var CONTRACT = "TC7d8kHYRsTnmvrEG8CJS329hFeyNL7h9d";
 
 const tronWeb = new TronWeb({
   fullHost: "https://api.trongrid.io",
@@ -17,8 +17,7 @@ async function generateEventQuery(result) {
     let csql_arr = [];
     let sql_arr = [];
     if (result.length > 0) {
-      let i = 0,
-        j = 0;
+      let i = 0;
       while (result.length > i) {
         let index = Object.keys(result[i]["result_type"]);
         let event = result[i]["event_name"];
@@ -31,15 +30,16 @@ async function generateEventQuery(result) {
           let reinvest = 0;
           let investorId = 0;
           let sobj = "";
-          let txid1 = "";
-          let last_id = 0;
-          await Registration.findOne({})
+          let promoterId = 0;
+          await Registration.findOne({}, "investorId")
             .sort({
               investorId: -1
             })
             .then((resp) => {
-              if (resp)
-                last_id = resp.investorId;
+              if (resp) {
+                promoterId = resp.investorId;
+                investorId = promoterId + 1;
+              }
             });
           while (index.length > k) {
             if (index[k].length > 2) {
@@ -81,19 +81,20 @@ async function generateEventQuery(result) {
           obj += `"block_number" : "${block_number}",`;
 
           if (result[i]["event_name"] == "Registration") {
-            obj += `"is_member_count" : "0",`;
+            obj += `"investorId": "${investorId}",`;
             obj += `"up_level_paid" : "0",`;
+            obj += `"promoterId": "${promoterId}",`;
           }
           obj += `"random_id" : "${ranodm_id}"`;
           sobj += `"transaction_id" : "${transaction_id}"`;
-          txid1 = `"transaction_id" : "${transaction_id}"`;
+          // let txid1 = `"transaction_id" : "${transaction_id}"`;
           // sobj += `"block_number" : "${block_number}"`;
 
           if (result[i]["event_name"] == "Registration") {
-            const reg_status = 1;
+
             let select_qry = `{${sobj}}`;
             let insert_qry = `{${obj}}`;
-            console.log("select_qry", sobj);
+            // console.log("select_qry", sobj);
             await Registration.findOne(JSON.parse(select_qry)).then(
               async (data) => {
                 if (!data) {
@@ -107,7 +108,32 @@ async function generateEventQuery(result) {
                     $set: {
                       direct_member: Number(reg_data)
                     }
-                  }).exec();
+                  }).then(async () => {
+                    let dep_status = 1;
+                    const val_dep = await Deposit.findOne({
+                      select_qry
+                    });
+                    if (val_dep == null)
+                      dep_status = 0;
+                    console.log("TX ID 1::", trx_amt, invest, dep_status, val_dep)
+                    if (dep_status === 0) {
+                      if (invest == 1) {
+                        let reg_datass = await Registration.findOne({
+                          investorId: investorId,
+                        }).exec();
+                        if (trx_amt == 500000000) {
+                          await Registration.updateOne({
+                            investorId: investorId
+                          }, {
+                            $set: {
+                              total_investment: Number(reg_datass.total_investment) + Number(trx_amt),
+                            },
+                          }).exec();
+                        }
+                      }
+                      await Deposit.create(JSON.parse(insert_qry));
+                    }
+                  });
                 }
               }
             );
@@ -116,6 +142,8 @@ async function generateEventQuery(result) {
             let select_qry_dep = `{${sobj}}`;
             let insert_qry_dep = `{${obj}}`;
             let dep_status = 1;
+            // console.log("select_qry_dep", obj);
+            // console.log("insert_qry_dep", sobj);
             const val_dep = await Deposit.findOne(JSON.parse(select_qry_dep));
             if (val_dep == null) dep_status = 0;
             if (dep_status === 0) {
@@ -130,7 +158,7 @@ async function generateEventQuery(result) {
                     $set: {
                       vip1: 1,
                       vip1_income: Number(4000000000),
-                      total_investment: Number(reg_datas.total_investment) + Number(trx_amt),
+                      total_investment: Number(reg_datas.total_investment ? reg_datas.total_investment : 0) + Number(trx_amt),
                       vip1_reinvest_count: Number(reg_datas.vip1_reinvest_count ? reg_datas.vip1_reinvest_count : 0) + 1
                     },
                   }).exec();
@@ -182,47 +210,6 @@ async function generateEventQuery(result) {
                   await vipHistory.save();
                 }
               }
-              if (invest == 1) {
-                let reg_datass = await Registration.findOne({
-                  investorId: investorId,
-                }).exec();
-                if (trx_amt == 500000000) {
-                  await Registration.updateOne({
-                    investorId: investorId
-                  }, {
-                    $set: {
-                      total_investment: Number(reg_datass.total_investment) + Number(trx_amt),
-                    },
-                  }).exec();
-                } else if (trx_amt == 2500000000) {
-                  await Registration.updateOne({
-                    investorId: investorId
-                  }, {
-                    $set: {
-                      vip1: 1,
-                      vip1_income: Number(4000000000)
-                    }
-                  }).exec();
-                } else if (trx_amt == 5500000000) {
-                  await Registration.updateOne({
-                    investorId: investorId
-                  }, {
-                    $set: {
-                      vip2: 1,
-                      vip2_income: Number(12500000000)
-                    }
-                  }).exec();
-                } else if (trx_amt == 10500000000) {
-                  await Registration.updateOne({
-                    investorId: investorId
-                  }, {
-                    $set: {
-                      vip3: 1,
-                      vip3_income: Number(30000000000)
-                    }
-                  }).exec();
-                }
-              }
               const ins_qry = await Deposit.create(JSON.parse(insert_qry_dep));
             }
           }
@@ -266,7 +253,7 @@ async function generateEventQuery(result) {
 //         );
 //     })
 //     .catch((e) => {
-//       console.log(e);
+      // console.log(e);
 //     });
 // };
 
@@ -283,18 +270,18 @@ exports.foreverExcute = async function foreverExcute(
 ) {
   if (!mintimestamp) {
     mintimestamp = await getLastEntryofRegistration();
-    console.log("min timestamp::", mintimestamp);
+    // console.log("min timestamp::", mintimestamp);
   } else {
-    console.log("puranka  timestamp::", mintimestamp);
+    // console.log("puranka  timestamp::", mintimestamp, );
   }
   fetch(
-      `https://api.trongrid.io/v1/contracts/${CONTRACT}/events?limit=100&min_timestamp=${mintimestamp}&onlyUnconfirmed=true&order_by=timestamp,asc&fingerprint=${fingerprint}`
+      `https://api.shasta.trongrid.io/v1/contracts/${CONTRACT}/events?limit=100&min_timestamp=${mintimestamp}&onlyUnconfirmed=true&order_by=timestamp,asc&fingerprint=${fingerprint}`
     )
     .then((d) => d.json())
     .then(async (result) => {
       // console.log(result)
       if (result.data) {
-        console.log(result.data);
+        // console.log(result.data);
         let res = await generateEventQuery(result.data);
       }
       if (result.meta.fingerprint ? true : false)

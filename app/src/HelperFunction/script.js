@@ -2,7 +2,7 @@ import { saveaddress, savebalance } from "../redux/action";
 
 // const url = "https://api.tronline.io/api";
 const url = "http://localhost:3001/api";
-export const CONTRACT_ADDRESS = "TPA3ESorUPgNX8e3a9o3nqCrfDncnGdDoY";
+export const CONTRACT_ADDRESS = "TC7d8kHYRsTnmvrEG8CJS329hFeyNL7h9d";
 // export const OWNER_ADDRESS = "TRmogeMRrX9TPzEBpFxSHjwUaenvFiWACB";
 export let wallet_address = "";
 

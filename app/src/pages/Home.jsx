@@ -509,8 +509,8 @@ export default function Home() {
                 let investor = response.data;
                 if (response.status) {
                   checkJoinAddress(state.wallet_address).then((res) => {
-                    // console.log("res true: ", res);
-                    if (!res) {
+                    console.log("res true: ", res);
+                    if (!res.data) {
                       window.contract
                         .UserRegister(state.wallet_address, investor)
                         .send({

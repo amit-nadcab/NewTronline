@@ -871,1211 +871,1232 @@ async function get_last_Id(req, res) {
   }
 }
 
-async function withdrawal_request(req, res) {
-  try {
-    const investorId = req.body.investorId;
-    const waddress = req.body.waddress;
-    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    // const ip = req.connection.remoteAddress;
-    if (false) {
-      // if (waddress && investorId) {
-      const result = await Registration.findOne({
-        investorId: investorId,
-        waddress: waddress,
-      }).exec();
-      console.log("waddress", waddress, investorId);
-      if (result) {
-        const req_withdrawl = req.body.withdrawl_amount;
-        const withdraw_locked = await Withdrawal_lock.findOne({
-          investorId: investorId,
-        }).exec();
-        if (withdraw_locked) {
-          const ct = Number(withdraw_locked.count);
-          withraw_lock(investorId, 3, ct + 1, ip);
-          return res.status(400).json({
-            status: false,
-            message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
-          });
-        } else {
-          withraw_lock(investorId, 1, 0, ip)
-            .then(async (data) => {
-              if (data) {
-                const siteData = await SiteData.findOne({}).exec();
-                const privateKey = siteData.private_key;
-                const total_investment = Number(result.total_investment) / 1e6;
-                const direct_member = Number(result.direct_member);
-                const wallet_balance = result.wallet_amount;
-                let net_withdrawl = 0;
-                let reinvest_amount = 0;
-                const node = {
-                  fullNode: "https://api.trongrid.io",
-                  solidityNode: "https://api.trongrid.io",
-                  privateKey,
-                };
-                const tronweb = new tronWeb(node);
-                async function withdrawal(
-                  waddress,
-                  random_id,
-                  withdrawal_amount,
-                  admin_charge,
-                  reinvest_amount,
-                  total_amt
-                ) {
-                  try {
-                    const contract = await tronweb
-                      .contract()
-                      .at(CONTRACT_ADDRESS);
-                    const contract_balance = await contract.getBalance().call();
-                    let checkres = [];
+// async function withdrawal_request(req, res) {
+//   try {
+//     const investorId = req.body.investorId;
+//     const waddress = req.body.waddress;
+//     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+//     if (false) {
+//       if (waddress && investorId) {
+//         const result = await Registration.findOne({
+//           investorId: investorId,
+//           waddress: waddress,
+//         }).exec();
+//         console.log("waddress", waddress, investorId);
+//         if (result) {
+//           const req_withdrawl = req.body.withdrawl_amount;
+//           const withdraw_locked = await Withdrawal_lock.findOne({
+//             investorId: investorId,
+//           }).exec();
+//           if (withdraw_locked) {
+//             const ct = Number(withdraw_locked.count);
+//             withraw_lock(investorId, 3, ct + 1, ip);
+//             return res.status(400).json({
+//               status: false,
+//               message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
+//             });
+//           } else {
+//             withraw_lock(investorId, 1, 0, ip)
+//               .then(async (data) => {
+//                 if (data) {
+//                   const siteData = await SiteData.findOne({}).exec();
+//                   const privateKey = siteData.private_key;
+//                   const total_investment = Number(result.total_investment) / 1e6;
+//                   const direct_member = Number(result.direct_member);
+//                   const wallet_balance = result.wallet_amount;
+//                   let net_withdrawl = 0;
+//                   let reinvest_amount = 0;
+//                   const node = {
+//                     fullNode: "https://api.trongrid.io",
+//                     solidityNode: "https://api.trongrid.io",
+//                     privateKey,
+//                   };
+//                   const tronweb = new tronWeb(node);
+//                   async function withdrawal(
+//                     waddress,
+//                     random_id,
+//                     withdrawal_amount,
+//                     admin_charge,
+//                     reinvest_amount,
+//                     total_amt
+//                   ) {
+//                     try {
+//                       const contract = await tronweb
+//                         .contract()
+//                         .at(CONTRACT_ADDRESS);
+//                       const contract_balance = await contract.getBalance().call();
+//                       let checkres = [];
 
-                    function checkwithdraw(txid) {
-                      return new Promise((resolve, reject) => {
-                        fetch(
-                            `https://api.tronscan.org/api/transaction-info?hash=${txid}`
-                          )
-                          .then((res) => resolve(res.json()))
-                          .catch((e) => {
-                            reject(e);
-                            console.log(e);
-                          });
-                      });
-                    }
-                    if (
-                      Number(contract_balance._hex) / 1e6 >
-                      Number(total_amt) + 100
-                    ) {
-                      const result1 = await contract
-                        .withdrawIncome(
-                          waddress,
-                          (Number(withdrawal_amount) - 7) * 1e6,
-                          Number(admin_charge) * 1e6,
-                          total_amt,
-                          Number(7) * 1e6
-                        )
-                        .send({
-                          feelimit: 200000000,
-                        });
-                      var maxcount = 0;
-                      var intervalobj = setInterval(async () => {
-                        maxcount += 1;
-                        checkres = await checkwithdraw(result1);
-                        if ((checkres && checkres.block) || maxcount > 3) {
-                          clearInterval(intervalobj);
-                          if (
-                            checkres &&
-                            checkres.hash == result1 &&
-                            checkres.contractRet &&
-                            checkres.contractRet == "SUCCESS"
-                          ) {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: total_amt,
-                              withdrawal_amount: withdrawal_amount,
-                              reinvest_amount: reinvest_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result1,
-                              ip_address: ip,
-                              withdrawal_type: "INCOME WITHDRAWAL",
-                              payout_status: 1,
-                            });
-                            withdrawlhistory.save();
-                            await withraw_lock(investorId, 0)
-                              .then(() => {
-                                return res.status(200).json({
-                                  status: "success",
-                                  message: "Withdrawal Successfully!",
-                                });
-                              })
-                              .catch(() => {
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Something went wrong, contact support team for more information!",
-                                });
-                              });
-                          } else {
-                            await Registration.updateOne({
-                                investorId: investorId,
-                              }, {
-                                $set: {
-                                  wallet_amount: Number(result.wallet_amount) +
-                                    Number(req_withdrawl),
-                                },
-                              })
-                              .then(async () => {
-                                await withraw_lock(investorId, 0);
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Withdrawal unsuccessful!",
-                                });
-                              })
-                              .catch(() => {
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Something went wrong, if wallet amount is deducted, contact support team!",
-                                });
-                              });
-                          }
-                        } else {
-                          await Registration.updateOne({
-                            investorId: investorId,
-                          }, {
-                            $set: {
-                              wallet_amount: Number(result.wallet_amount) +
-                                Number(req_withdrawl),
-                            },
-                          }).then(async () => {
-                            await withraw_lock(investorId, 0);
-                            return res.status(400).json({
-                              status: "error",
-                              message: "Withdrawal timeout!",
-                            });
-                          });
-                        }
-                      }, 10000);
-                    } else {
-                      await withraw_lock(investorId, 0);
-                      return res.status(400).json({
-                        status: "error",
-                        message: "Insufficient balance in contract!",
-                      });
-                    }
+//                       function checkwithdraw(txid) {
+//                         return new Promise((resolve, reject) => {
+//                           fetch(
+//                               `https://api.tronscan.org/api/transaction-info?hash=${txid}`
+//                             )
+//                             .then((res) => resolve(res.json()))
+//                             .catch((e) => {
+//                               reject(e);
+//                               console.log(e);
+//                             });
+//                         });
+//                       }
+//                       if (
+//                         Number(contract_balance._hex) / 1e6 >
+//                         Number(total_amt) + 100
+//                       ) {
+//                         const result1 = await contract
+//                           .withdrawIncome(
+//                             waddress,
+//                             (Number(withdrawal_amount) - 7) * 1e6,
+//                             Number(admin_charge) * 1e6,
+//                             total_amt,
+//                             Number(7) * 1e6
+//                           )
+//                           .send({
+//                             feelimit: 200000000,
+//                           });
+//                         var maxcount = 0;
+//                         var intervalobj = setInterval(async () => {
+//                           maxcount += 1;
+//                           checkres = await checkwithdraw(result1);
+//                           if ((checkres && checkres.block) || maxcount > 3) {
+//                             clearInterval(intervalobj);
+//                             if (
+//                               checkres &&
+//                               checkres.hash == result1 &&
+//                               checkres.contractRet &&
+//                               checkres.contractRet == "SUCCESS"
+//                             ) {
+//                               const withdrawlhistory = new Withdrawlhistory({
+//                                 investorId: investorId,
+//                                 random_id: random_id,
+//                                 total_amount: total_amt,
+//                                 withdrawal_amount: withdrawal_amount,
+//                                 reinvest_amount: reinvest_amount,
+//                                 block_timestamp: new Date().getTime(),
+//                                 transaction_id: result1,
+//                                 ip_address: ip,
+//                                 withdrawal_type: "INCOME WITHDRAWAL",
+//                                 payout_status: 1,
+//                               });
+//                               withdrawlhistory.save();
+//                               await withraw_lock(investorId, 0)
+//                                 .then(() => {
+//                                   return res.status(200).json({
+//                                     status: "success",
+//                                     message: "Withdrawal Successfully!",
+//                                   });
+//                                 })
+//                                 .catch(() => {
+//                                   return res.status(400).json({
+//                                     status: false,
+//                                     message: "Something went wrong, contact support team for more information!",
+//                                   });
+//                                 });
+//                             } else {
 
-                    // console.log('- Output:', receipt, '\n');
-                    // return receipt;
-                  } catch {
-                    await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: false,
-                      message: "Some error occurred. If it continues, contact support!",
-                    });
-                  }
-                }
-                // console.log(wallet_balance, req_withdrawl);
-                if (wallet_balance >= req_withdrawl && req_withdrawl <= 10000) {
-                  if (req_withdrawl >= 100) {
-                    let req_withdrawl_after_admin_charge =
-                      (req_withdrawl * 90) / 100;
-                    let admin_charge = (req_withdrawl * 10) / 100;
-                    if (total_investment < 5000) {
-                      net_withdrawl =
-                        (req_withdrawl_after_admin_charge * 40) / 100;
-                      reinvest_amount =
-                        (req_withdrawl_after_admin_charge * 60) / 100;
-                    } else if (
-                      total_investment >= 5000 &&
-                      total_investment < 20000
-                    ) {
-                      if (direct_member >= 5) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                      } else {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 40) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 60) / 100;
-                      }
-                    } else if (
-                      total_investment >= 20000 &&
-                      total_investment < 50000
-                    ) {
-                      if (direct_member >= 8) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 60) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 40) / 100;
-                      } else if (direct_member >= 5 && direct_member < 8) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                      } else if (direct_member < 5) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 40) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 60) / 100;
-                      }
-                    } else if (total_investment >= 50000) {
-                      if (direct_member >= 10) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 70) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 30) / 100;
-                      } else if (direct_member >= 8 && direct_member < 10) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 60) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 40) / 100;
-                      } else if (direct_member >= 5 && direct_member < 8) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 50) / 100;
-                      } else if (direct_member < 5) {
-                        net_withdrawl =
-                          (req_withdrawl_after_admin_charge * 40) / 100;
-                        reinvest_amount =
-                          (req_withdrawl_after_admin_charge * 60) / 100;
-                      }
-                    }
-                    await Registration.updateOne({
-                        investorId: investorId,
-                      }, {
-                        $set: {
-                          wallet_amount: Number(result.wallet_amount) -
-                            Number(req_withdrawl),
-                        },
-                      })
-                      .then((res) => {
-                        withdrawal(
-                          result.waddress,
-                          result.random_id,
-                          net_withdrawl,
-                          admin_charge,
-                          reinvest_amount,
-                          req_withdrawl
-                        );
-                      })
-                      .catch(async (error) => {
-                        await withraw_lock(investorId, 0);
-                        return res.status(400).json({
-                          status: false,
-                          message: "Some error occurred. If it continues, contact support!",
-                        });
-                      });
-                  } else {
-                    // await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Withdrawal Amount should be greater than 100 TRX",
-                    });
-                  }
-                } else {
-                  // await withraw_lock(investorId, 0);
-                  return res.status(400).json({
-                    status: "false",
-                    message: "Invalid Amount for Withdrawal Request",
-                  });
-                }
-              } else {
-                return res.status(200).json({
-                  status: false,
-                  message: "Something went wrong. If it continues, contact support!",
-                });
-              }
-            })
-            .catch((error) => {
-              console.log("Error in withdrawal_request ", error.message);
-              withraw_lock(investorId, 3, 3, ip);
-              return res.status(400).json({
-                status: false,
-                message: "Something went wrong. If it continues, contact support!",
-              });
-            });
-        }
-      } else {
-        return res.status(400).json({
-          status: "false",
-          message: "This wallet Address does not exist. Join First!",
-        });
-      }
-    } else {
-      return res.status(400).json({
-        status: "false",
-        message:
-          // "Invalid Parameters!",
-          "Due to safety measures Withdrawals are on hold for 7-8 hours!",
-      });
-    }
-  } catch (error) {
-    console.log("Error in Withdrawal Request ", error.message);
-    return res.status(400).json({
-      status: "false",
-      message: "Something went wrong!",
-    });
-  }
-}
+//                               await Registration.updateOne({
+//                                   investorId: investorId,
+//                                 }, {
+//                                   $set: {
+//                                     wallet_amount: Number(result.wallet_amount) +
+//                                       Number(req_withdrawl),
+//                                   },
+//                                 })
+//                                 .then(async () => {
+//                                   const withdrawlhistory = new Withdrawlhistory({
+//                                     investorId: investorId,
+//                                     random_id: random_id,
+//                                     total_amount: total_amt,
+//                                     withdrawal_amount: withdrawal_amount,
+//                                     reinvest_amount: reinvest_amount,
+//                                     block_timestamp: new Date().getTime(),
+//                                     transaction_id: result1,
+//                                     ip_address: ip,
+//                                     withdrawal_type: "INCOME WITHDRAWAL",
+//                                     payout_status: 0,
+//                                   });
+//                                   withdrawlhistory.save();
+//                                   await withraw_lock(investorId, 0);
+//                                   return res.status(400).json({
+//                                     status: false,
+//                                     message: "Withdrawal unsuccessful!",
+//                                   });
+//                                 })
+//                                 .catch(() => {
+//                                   return res.status(400).json({
+//                                     status: false,
+//                                     message: "Something went wrong, if wallet amount is deducted, contact support team!",
+//                                   });
+//                                 });
+//                             }
+//                           } else {
+//                             await Registration.updateOne({
+//                               investorId: investorId,
+//                             }, {
+//                               $set: {
+//                                 wallet_amount: Number(result.wallet_amount) +
+//                                   Number(req_withdrawl),
+//                               },
+//                             }).then(async () => {
+//                               await withraw_lock(investorId, 0);
+//                               return res.status(400).json({
+//                                 status: "error",
+//                                 message: "Withdrawal timeout!",
+//                               });
+//                             });
+//                           }
+//                         }, 10000);
+//                       } else {
+//                         await withraw_lock(investorId, 0);
+//                         return res.status(400).json({
+//                           status: "error",
+//                           message: "Insufficient balance in contract!",
+//                         });
+//                       }
 
-async function vip1_income_withdrawal_request(req, res) {
-  try {
-    const investorId = req.body.investorId;
-    const waddress = req.body.waddress;
-    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    // const ip = req.connection.remoteAddress;
-    if (false) {
-      // if (waddress && investorId) {
-      const it = await Registration.findOne({
-        investorId: investorId,
-        waddress: waddress,
-      }).exec();
-      if (it) {
-        const req_withdrawl = req.body.withdrawl_amount;
-        const withdraw_locked = await Withdrawal_lock.findOne({
-          investorId: investorId,
-        }).exec();
-        if (withdraw_locked) {
-          const ct = Number(withdraw_locked.count);
-          withraw_lock(investorId, 3, ct + 1, ip);
-          return res.status(400).json({
-            status: false,
-            message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
-          });
-        } else {
-          withraw_lock(investorId, 1, 0, ip)
-            .then(async (data) => {
-              if (data) {
-                const ref_data = await Registration.findOne({
-                  investorId: it.referrerId,
-                }).exec();
-                const wallet_balance = it.vip1_wallet;
-                const siteData = await SiteData.findOne({}).exec();
-                const privateKey = siteData.private_key;
-                const node = {
-                  fullNode: "https://api.trongrid.io",
-                  solidityNode: "https://api.trongrid.io",
-                  privateKey,
-                };
-                const tronweb = new tronWeb(node);
+//                       // console.log('- Output:', receipt, '\n');
+//                       // return receipt;
+//                     } catch {
+//                       await withraw_lock(investorId, 0);
+//                       return res.status(400).json({
+//                         status: false,
+//                         message: "Some error occurred. If it continues, contact support!",
+//                       });
+//                     }
+//                   }
+//                   // console.log(wallet_balance, req_withdrawl);
+//                   if (wallet_balance >= req_withdrawl && req_withdrawl <= 10000) {
+//                     if (req_withdrawl >= 100) {
+//                       let req_withdrawl_after_admin_charge =
+//                         (req_withdrawl * 90) / 100;
+//                       let admin_charge = (req_withdrawl * 10) / 100;
+//                       if (total_investment < 5000) {
+//                         net_withdrawl =
+//                           (req_withdrawl_after_admin_charge * 40) / 100;
+//                         reinvest_amount =
+//                           (req_withdrawl_after_admin_charge * 60) / 100;
+//                       } else if (
+//                         total_investment >= 5000 &&
+//                         total_investment < 20000
+//                       ) {
+//                         if (direct_member >= 5) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                         } else {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 40) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 60) / 100;
+//                         }
+//                       } else if (
+//                         total_investment >= 20000 &&
+//                         total_investment < 50000
+//                       ) {
+//                         if (direct_member >= 8) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 60) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 40) / 100;
+//                         } else if (direct_member >= 5 && direct_member < 8) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                         } else if (direct_member < 5) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 40) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 60) / 100;
+//                         }
+//                       } else if (total_investment >= 50000) {
+//                         if (direct_member >= 10) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 70) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 30) / 100;
+//                         } else if (direct_member >= 8 && direct_member < 10) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 60) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 40) / 100;
+//                         } else if (direct_member >= 5 && direct_member < 8) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 50) / 100;
+//                         } else if (direct_member < 5) {
+//                           net_withdrawl =
+//                             (req_withdrawl_after_admin_charge * 40) / 100;
+//                           reinvest_amount =
+//                             (req_withdrawl_after_admin_charge * 60) / 100;
+//                         }
+//                       }
+//                       await Registration.updateOne({
+//                           investorId: investorId,
+//                         }, {
+//                           $set: {
+//                             wallet_amount: Number(result.wallet_amount) -
+//                               Number(req_withdrawl),
+//                           },
+//                         })
+//                         .then((res) => {
+//                           withdrawal(
+//                             result.waddress,
+//                             result.random_id,
+//                             net_withdrawl,
+//                             admin_charge,
+//                             reinvest_amount,
+//                             req_withdrawl
+//                           );
+//                         })
+//                         .catch(async (error) => {
+//                           await withraw_lock(investorId, 0);
+//                           return res.status(400).json({
+//                             status: false,
+//                             message: "Some error occurred. If it continues, contact support!",
+//                           });
+//                         });
+//                     } else {
+//                       // await withraw_lock(investorId, 0);
+//                       return res.status(400).json({
+//                         status: "false",
+//                         message: "Withdrawal Amount should be greater than 100 TRX",
+//                       });
+//                     }
+//                   } else {
+//                     // await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Invalid Amount for Withdrawal Request",
+//                     });
+//                   }
+//                 } else {
+//                   return res.status(200).json({
+//                     status: false,
+//                     message: "Something went wrong. If it continues, contact support!",
+//                   });
+//                 }
+//               })
+//               .catch((error) => {
+//                 console.log("Error in withdrawal_request ", error.message);
+//                 withraw_lock(investorId, 3, 3, ip);
+//                 return res.status(400).json({
+//                   status: false,
+//                   message: "Something went wrong. If it continues, contact support!",
+//                 });
+//               });
+//           }
+//         } else {
+//           return res.status(400).json({
+//             status: "false",
+//             message: "This wallet Address does not exist. Join First!",
+//           });
+//         }
+//       } else {
+//         return res.status(400).json({
+//           status: "false",
+//           message: "Invalid Parameters!",
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({
+//         status: "false",
+//         message:
+//           // "Invalid Parameters!",
+//           "Due to safety measures Withdrawals are on hold for 7-8 hours!",
+//       });
+//     }
+//   } catch (error) {
+//     console.log("Error in Withdrawal Request ", error.message);
+//     return res.status(400).json({
+//       status: "false",
+//       message: "Something went wrong!",
+//     });
+//   }
+// }
 
-                async function withdrawal(
-                  investorId,
-                  waddress,
-                  random_id,
-                  withdrawal_amount,
-                  sponsorId,
-                  sponsor_random_id,
-                  sponsor_withdrawal_amount,
-                  admin_charge,
-                  withdraw_limit
-                ) {
-                  try {
-                    const contract = await tronweb
-                      .contract()
-                      .at(CONTRACT_ADDRESS);
-                    const contract_balance = await contract.getBalance().call();
-                    let checkres = [];
+// async function vip1_income_withdrawal_request(req, res) {
+//   try {
+//     const investorId = req.body.investorId;
+//     const waddress = req.body.waddress;
+//     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+//     // const ip = req.connection.remoteAddress;
+//     if (false) {
+//       // if (waddress && investorId) {
+//       const it = await Registration.findOne({
+//         investorId: investorId,
+//         waddress: waddress,
+//       }).exec();
+//       if (it) {
+//         const req_withdrawl = req.body.withdrawl_amount;
+//         const withdraw_locked = await Withdrawal_lock.findOne({
+//           investorId: investorId,
+//         }).exec();
+//         if (withdraw_locked) {
+//           const ct = Number(withdraw_locked.count);
+//           withraw_lock(investorId, 3, ct + 1, ip);
+//           return res.status(400).json({
+//             status: false,
+//             message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
+//           });
+//         } else {
+//           withraw_lock(investorId, 1, 0, ip)
+//             .then(async (data) => {
+//               if (data) {
+//                 const ref_data = await Registration.findOne({
+//                   investorId: it.referrerId,
+//                 }).exec();
+//                 const wallet_balance = it.vip1_wallet;
+//                 const siteData = await SiteData.findOne({}).exec();
+//                 const privateKey = siteData.private_key;
+//                 const node = {
+//                   fullNode: "https://api.trongrid.io",
+//                   solidityNode: "https://api.trongrid.io",
+//                   privateKey,
+//                 };
+//                 const tronweb = new tronWeb(node);
 
-                    function checkwithdraw(txid) {
-                      return new Promise((resolve, reject) => {
-                        fetch(
-                            `https://api.tronscan.org/api/transaction-info?hash=${txid}`
-                          )
-                          .then((res) => resolve(res.json()))
-                          .catch((e) => {
-                            reject(e);
-                            console.log(e);
-                          });
-                      });
-                    }
-                    if (
-                      Number(contract_balance._hex) / 1e6 >
-                      Number(withdraw_limit) + 100
-                    ) {
-                      const result2 = await contract
-                        .withdrawIncome(
-                          waddress,
-                          (Number(withdrawal_amount) - 7) * 1e6,
-                          Number(admin_charge) * 1e6,
-                          withdraw_limit,
-                          Number(7) * 1e6
-                        )
-                        .send({
-                          feelimit: 200000000,
-                        });
+//                 async function withdrawal(
+//                   investorId,
+//                   waddress,
+//                   random_id,
+//                   withdrawal_amount,
+//                   sponsorId,
+//                   sponsor_random_id,
+//                   sponsor_withdrawal_amount,
+//                   admin_charge,
+//                   withdraw_limit
+//                 ) {
+//                   try {
+//                     const contract = await tronweb
+//                       .contract()
+//                       .at(CONTRACT_ADDRESS);
+//                     const contract_balance = await contract.getBalance().call();
+//                     let checkres = [];
 
-                      var maxcount = 0;
-                      var intervalobj = setInterval(async () => {
-                        maxcount = maxcount + 1;
-                        checkres = await checkwithdraw(result2);
-                        if ((checkres && checkres.block) || maxcount > 3) {
-                          clearInterval(intervalobj);
-                          if (
-                            checkres &&
-                            checkres.hash == result2 &&
-                            checkres.contractRet &&
-                            checkres.contractRet == "SUCCESS"
-                          ) {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 1,
-                              withdrawal_type: "VIP 1 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
-                            const trancsaction = new Transaction({
-                              investorId: sponsorId,
-                              random_id: sponsor_random_id,
-                              transaction_id: result2,
-                              income_from_id: investorId,
-                              income_from_random_id: random_id,
-                              total_income: sponsor_withdrawal_amount,
-                              income_type: "VIP 1 SPONSOR INCOME",
-                              status: 1,
-                              income_date: new Date().getTime(),
-                            });
-                            await trancsaction.save();
-                            await Registration.updateOne({
-                                investorId: sponsorId,
-                              }, {
-                                $set: {
-                                  wallet_amount: Number(ref_data.wallet_amount) +
-                                    Number(sponsor_withdrawal_amount),
-                                },
-                              })
-                              .then(async (data) => {
-                                if (data) {
-                                  await withraw_lock(investorId, 0);
-                                  return res.status(200).json({
-                                    status: "success",
-                                    message: "Withdrawal Successful!",
-                                  });
-                                }
-                              })
-                              .catch((error) => {
-                                console.log(
-                                  "Error in vip1_income_withdrawal_request ",
-                                  error.message
-                                );
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Some error occurred. If it continues, contact support!",
-                                });
-                              });
-                          } else {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 0,
-                              withdrawal_type: "VIP 1 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
-                            await withraw_lock(investorId, 0);
-                            return res.status(400).json({
-                              status: false,
-                              message: "Withdrawal unsuccessful!",
-                            });
-                          }
-                        } else {
-                          await withraw_lock(investorId, 0);
-                          return res.status(400).json({
-                            status: "error",
-                            message: "Withdrawal timeout!",
-                          });
-                        }
-                      }, 10000);
-                    } else {
-                      await withraw_lock(investorId, 0);
-                      return res.status(400).json({
-                        status: "false",
-                        message: "Insufficient balance in Contract!",
-                      });
-                    }
-                  } catch (error) {
-                    await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Some error occurred!",
-                    });
-                  }
-                }
+//                     function checkwithdraw(txid) {
+//                       return new Promise((resolve, reject) => {
+//                         fetch(
+//                             `https://api.tronscan.org/api/transaction-info?hash=${txid}`
+//                           )
+//                           .then((res) => resolve(res.json()))
+//                           .catch((e) => {
+//                             reject(e);
+//                             console.log(e);
+//                           });
+//                       });
+//                     }
+//                     if (
+//                       Number(contract_balance._hex) / 1e6 >
+//                       Number(withdraw_limit) + 100
+//                     ) {
+//                       const result2 = await contract
+//                         .withdrawIncome(
+//                           waddress,
+//                           (Number(withdrawal_amount) - 7) * 1e6,
+//                           Number(admin_charge) * 1e6,
+//                           withdraw_limit,
+//                           Number(7) * 1e6
+//                         )
+//                         .send({
+//                           feelimit: 200000000,
+//                         });
 
-                if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
-                  if (req_withdrawl >= 100) {
-                    await Registration.updateOne({
-                        investorId: investorId,
-                      }, {
-                        $set: {
-                          vip1_wallet: Number(it.vip1_wallet) -
-                            Number(req_withdrawl) * 1e6,
-                          withdraw_vip_income: Number(it.withdraw_vip_income) +
-                            Number(req_withdrawl) * 1e6,
-                        },
-                      })
-                      .then(() => {
-                        withdrawal(
-                          investorId,
-                          it.waddress,
-                          it.random_id,
-                          (req_withdrawl * 90) / 100,
-                          ref_data.investorId,
-                          ref_data.random_id,
-                          (req_withdrawl * 2.5) / 100,
-                          (req_withdrawl * 7.5) / 100,
-                          req_withdrawl
-                        );
-                      })
-                      .catch(async (error) => {
-                        await withraw_lock(investorId, 0);
-                        return res.status(400).json({
-                          status: false,
-                          message: "Some error occurred. If it continues, contact support!",
-                        });
-                      });
-                  } else {
-                    // await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Withdrawal Amount should be greater than 100 TRX",
-                    });
-                  }
-                } else {
-                  // await withraw_lock(investorId, 0);
-                  return res.status(400).json({
-                    status: "false",
-                    message: "Invalid Amount for Withdrawal Request",
-                  });
-                }
-              } else {
-                // await withraw_lock(investorId, 0);
-                return res.status(200).json({
-                  status: false,
-                  message: "Some error occurred. If it continues, contact support!",
-                });
-              }
-            })
-            .catch((error) => {
-              console.log("Error in withdrawal_request ", error.message);
-              withraw_lock(investorId, 3, 3, ip);
-              return res.status(400).json({
-                status: false,
-                message: "Something went wrong. If it continues, contact support!",
-              });
-            });
-        }
-      } else {
-        return res.status(400).json({
-          status: "false",
-          message: "This wallet Address does not exist. Join First!",
-        });
-      }
-    } else {
-      return res.status(400).json({
-        status: "false",
-        message:
-          // "Invalid Parameters!",
-          "Due to safety measures Withdrawals are on hold for 7-8 hours!",
-      });
-    }
-  } catch (error) {
-    console.log("Error in vip1_income_withdrawal_request ", error.message);
-    return res.status(400).json({
-      status: false,
-      message: "Some error occurred. If it continues, contact support!",
-    });
-  }
-}
+//                       var maxcount = 0;
+//                       var intervalobj = setInterval(async () => {
+//                         maxcount = maxcount + 1;
+//                         checkres = await checkwithdraw(result2);
+//                         if ((checkres && checkres.block) || maxcount > 3) {
+//                           clearInterval(intervalobj);
+//                           if (
+//                             checkres &&
+//                             checkres.hash == result2 &&
+//                             checkres.contractRet &&
+//                             checkres.contractRet == "SUCCESS"
+//                           ) {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 1,
+//                               withdrawal_type: "VIP 1 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
+//                             const trancsaction = new Transaction({
+//                               investorId: sponsorId,
+//                               random_id: sponsor_random_id,
+//                               transaction_id: result2,
+//                               income_from_id: investorId,
+//                               income_from_random_id: random_id,
+//                               total_income: sponsor_withdrawal_amount,
+//                               income_type: "VIP 1 SPONSOR INCOME",
+//                               status: 1,
+//                               income_date: new Date().getTime(),
+//                             });
+//                             await trancsaction.save();
+//                             await Registration.updateOne({
+//                                 investorId: sponsorId,
+//                               }, {
+//                                 $set: {
+//                                   wallet_amount: Number(ref_data.wallet_amount) +
+//                                     Number(sponsor_withdrawal_amount),
+//                                 },
+//                               })
+//                               .then(async (data) => {
+//                                 if (data) {
+//                                   await withraw_lock(investorId, 0);
+//                                   return res.status(200).json({
+//                                     status: "success",
+//                                     message: "Withdrawal Successful!",
+//                                   });
+//                                 }
+//                               })
+//                               .catch((error) => {
+//                                 console.log(
+//                                   "Error in vip1_income_withdrawal_request ",
+//                                   error.message
+//                                 );
+//                                 return res.status(400).json({
+//                                   status: false,
+//                                   message: "Some error occurred. If it continues, contact support!",
+//                                 });
+//                               });
+//                           } else {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 0,
+//                               withdrawal_type: "VIP 1 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
+//                             await withraw_lock(investorId, 0);
+//                             return res.status(400).json({
+//                               status: false,
+//                               message: "Withdrawal unsuccessful!",
+//                             });
+//                           }
+//                         } else {
+//                           await withraw_lock(investorId, 0);
+//                           return res.status(400).json({
+//                             status: "error",
+//                             message: "Withdrawal timeout!",
+//                           });
+//                         }
+//                       }, 10000);
+//                     } else {
+//                       await withraw_lock(investorId, 0);
+//                       return res.status(400).json({
+//                         status: "false",
+//                         message: "Insufficient balance in Contract!",
+//                       });
+//                     }
+//                   } catch (error) {
+//                     await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Some error occurred!",
+//                     });
+//                   }
+//                 }
 
-async function vip2_income_withdrawal_request(req, res) {
-  try {
-    const investorId = req.body.investorId;
-    const waddress = req.body.waddress;
-    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    // const ip = req.connection.remoteAddress;
-    console.log("IP Address::", ip);
-    // if (waddress && investorId) {
-    if (false) {
-      const it = await Registration.findOne({
-        investorId: investorId,
-        waddress: waddress,
-      }).exec();
-      if (it) {
-        const req_withdrawl = req.body.withdrawl_amount;
-        const withdraw_locked = await Withdrawal_lock.findOne({
-          investorId: investorId,
-        }).exec();
-        if (withdraw_locked) {
-          const ct = Number(withdraw_locked.count);
-          withraw_lock(investorId, 3, ct + 1, ip);
-          return res.status(400).json({
-            status: false,
-            message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
-          });
-        } else {
-          withraw_lock(investorId, 1, 0, ip)
-            .then(async (data) => {
-              if (data) {
-                const ref_data = await Registration.findOne({
-                  investorId: it.referrerId,
-                }).exec();
-                const wallet_balance = it.vip2_wallet;
-                const siteData = await SiteData.findOne({}).exec();
-                const privateKey = siteData.private_key;
-                const node = {
-                  fullNode: "https://api.trongrid.io",
-                  solidityNode: "https://api.trongrid.io",
-                  privateKey,
-                };
-                const tronweb = new tronWeb(node);
+//                 if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
+//                   if (req_withdrawl >= 100) {
+//                     await Registration.updateOne({
+//                         investorId: investorId,
+//                       }, {
+//                         $set: {
+//                           vip1_wallet: Number(it.vip1_wallet) -
+//                             Number(req_withdrawl) * 1e6,
+//                           withdraw_vip_income: Number(it.withdraw_vip_income) +
+//                             Number(req_withdrawl) * 1e6,
+//                         },
+//                       })
+//                       .then(() => {
+//                         withdrawal(
+//                           investorId,
+//                           it.waddress,
+//                           it.random_id,
+//                           (req_withdrawl * 90) / 100,
+//                           ref_data.investorId,
+//                           ref_data.random_id,
+//                           (req_withdrawl * 2.5) / 100,
+//                           (req_withdrawl * 7.5) / 100,
+//                           req_withdrawl
+//                         );
+//                       })
+//                       .catch(async (error) => {
+//                         await withraw_lock(investorId, 0);
+//                         return res.status(400).json({
+//                           status: false,
+//                           message: "Some error occurred. If it continues, contact support!",
+//                         });
+//                       });
+//                   } else {
+//                     // await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Withdrawal Amount should be greater than 100 TRX",
+//                     });
+//                   }
+//                 } else {
+//                   // await withraw_lock(investorId, 0);
+//                   return res.status(400).json({
+//                     status: "false",
+//                     message: "Invalid Amount for Withdrawal Request",
+//                   });
+//                 }
+//               } else {
+//                 // await withraw_lock(investorId, 0);
+//                 return res.status(200).json({
+//                   status: false,
+//                   message: "Some error occurred. If it continues, contact support!",
+//                 });
+//               }
+//             })
+//             .catch((error) => {
+//               console.log("Error in withdrawal_request ", error.message);
+//               withraw_lock(investorId, 3, 3, ip);
+//               return res.status(400).json({
+//                 status: false,
+//                 message: "Something went wrong. If it continues, contact support!",
+//               });
+//             });
+//         }
+//       } else {
+//         return res.status(400).json({
+//           status: "false",
+//           message: "This wallet Address does not exist. Join First!",
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({
+//         status: "false",
+//         message:
+//           // "Invalid Parameters!",
+//           "Due to safety measures Withdrawals are on hold for 7-8 hours!",
+//       });
+//     }
+//   } catch (error) {
+//     console.log("Error in vip1_income_withdrawal_request ", error.message);
+//     return res.status(400).json({
+//       status: false,
+//       message: "Some error occurred. If it continues, contact support!",
+//     });
+//   }
+// }
 
-                async function withdrawal(
-                  investorId,
-                  waddress,
-                  random_id,
-                  withdrawal_amount,
-                  sponsorId,
-                  sponsor_random_id,
-                  sponsor_withdrawal_amount,
-                  admin_charge,
-                  withdraw_limit
-                ) {
-                  try {
-                    const contract = await tronweb
-                      .contract()
-                      .at(CONTRACT_ADDRESS);
-                    const contract_balance = await contract.getBalance().call();
-                    let checkres = [];
+// async function vip2_income_withdrawal_request(req, res) {
+//   try {
+//     const investorId = req.body.investorId;
+//     const waddress = req.body.waddress;
+//     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+//     // const ip = req.connection.remoteAddress;
+//     console.log("IP Address::", ip);
+//     // if (waddress && investorId) {
+//     if (false) {
+//       const it = await Registration.findOne({
+//         investorId: investorId,
+//         waddress: waddress,
+//       }).exec();
+//       if (it) {
+//         const req_withdrawl = req.body.withdrawl_amount;
+//         const withdraw_locked = await Withdrawal_lock.findOne({
+//           investorId: investorId,
+//         }).exec();
+//         if (withdraw_locked) {
+//           const ct = Number(withdraw_locked.count);
+//           withraw_lock(investorId, 3, ct + 1, ip);
+//           return res.status(400).json({
+//             status: false,
+//             message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
+//           });
+//         } else {
+//           withraw_lock(investorId, 1, 0, ip)
+//             .then(async (data) => {
+//               if (data) {
+//                 const ref_data = await Registration.findOne({
+//                   investorId: it.referrerId,
+//                 }).exec();
+//                 const wallet_balance = it.vip2_wallet;
+//                 const siteData = await SiteData.findOne({}).exec();
+//                 const privateKey = siteData.private_key;
+//                 const node = {
+//                   fullNode: "https://api.trongrid.io",
+//                   solidityNode: "https://api.trongrid.io",
+//                   privateKey,
+//                 };
+//                 const tronweb = new tronWeb(node);
 
-                    function checkwithdraw(txid) {
-                      return new Promise((resolve, reject) => {
-                        fetch(
-                            `https://api.tronscan.org/api/transaction-info?hash=${txid}`
-                          )
-                          .then((res) => resolve(res.json()))
-                          .catch((e) => {
-                            reject(e);
-                            console.log(e);
-                          });
-                      });
-                    }
-                    if (
-                      Number(contract_balance._hex) / 1e6 >
-                      Number(withdraw_limit) + 100
-                    ) {
-                      const result2 = await contract
-                        .withdrawIncome(
-                          waddress,
-                          (Number(withdrawal_amount) - 7) * 1e6,
-                          Number(admin_charge) * 1e6,
-                          withdraw_limit,
-                          Number(7) * 1e6
-                        )
-                        .send({
-                          feelimit: 200000000,
-                        });
+//                 async function withdrawal(
+//                   investorId,
+//                   waddress,
+//                   random_id,
+//                   withdrawal_amount,
+//                   sponsorId,
+//                   sponsor_random_id,
+//                   sponsor_withdrawal_amount,
+//                   admin_charge,
+//                   withdraw_limit
+//                 ) {
+//                   try {
+//                     const contract = await tronweb
+//                       .contract()
+//                       .at(CONTRACT_ADDRESS);
+//                     const contract_balance = await contract.getBalance().call();
+//                     let checkres = [];
 
-                      var maxcount = 0;
-                      var intervalobj = setInterval(async () => {
-                        maxcount = maxcount + 1;
-                        checkres = await checkwithdraw(result2);
-                        if ((checkres && checkres.block) || maxcount > 3) {
-                          clearInterval(intervalobj);
-                          if (
-                            checkres &&
-                            checkres.hash == result2 &&
-                            checkres.contractRet &&
-                            checkres.contractRet == "SUCCESS"
-                          ) {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 1,
-                              withdrawal_type: "VIP 2 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
-                            const trancsaction = new Transaction({
-                              investorId: sponsorId,
-                              random_id: sponsor_random_id,
-                              transaction_id: result2,
-                              income_from_id: investorId,
-                              income_from_random_id: random_id,
-                              total_income: sponsor_withdrawal_amount,
-                              income_type: "VIP 2 SPONSOR INCOME",
-                              status: 1,
-                              income_date: new Date().getTime(),
-                            });
-                            await trancsaction.save();
-                            await Registration.updateOne({
-                                investorId: sponsorId,
-                              }, {
-                                $set: {
-                                  wallet_amount: Number(ref_data.wallet_amount) +
-                                    Number(sponsor_withdrawal_amount),
-                                },
-                              })
-                              .then(async (data) => {
-                                if (data) {}
-                              })
-                              .catch((error) => {
-                                console.log(
-                                  "Error in vip2_income_withdrawal_request ",
-                                  error.message
-                                );
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Some error occurred. If it continues, contact support!",
-                                });
-                              });
-                          } else {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 0,
-                              withdrawal_type: "VIP 2 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
-                            await withraw_lock(investorId, 0);
-                            return res.status(400).json({
-                              status: false,
-                              message: "Withdrawal unsuccessful!",
-                            });
-                          }
-                        } else {
-                          await withraw_lock(investorId, 0);
-                          return res.status(400).json({
-                            status: "error",
-                            message: "Withdrawal timeout!",
-                          });
-                        }
-                      }, 10000);
-                    } else {
-                      await withraw_lock(investorId, 0);
-                      return res.status(400).json({
-                        status: "false",
-                        message: "Insufficient balance in Contract!",
-                      });
-                    }
-                  } catch (error) {
-                    await Registration.updateOne({
-                      investorId: investorId,
-                    }, {
-                      $set: {
-                        vip2_wallet: Number(it.vip2_wallet) +
-                          Number(req_withdrawl) * 1e6,
-                        withdraw_vip_income: Number(it.withdraw_vip_income) -
-                          Number(req_withdrawl) * 1e6,
-                      },
-                    }).then(async () => {
-                      await withraw_lock(investorId, 0);
-                      console.log(
-                        "Error in vip2_income_withdrawal_request ",
-                        error.message
-                      );
-                      return res.status(400).json({
-                        status: false,
-                        message: "Some error occurred. If it continues, contact support!",
-                      });
-                    });
-                    await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Some error occurred!",
-                    });
-                  }
-                }
+//                     function checkwithdraw(txid) {
+//                       return new Promise((resolve, reject) => {
+//                         fetch(
+//                             `https://api.tronscan.org/api/transaction-info?hash=${txid}`
+//                           )
+//                           .then((res) => resolve(res.json()))
+//                           .catch((e) => {
+//                             reject(e);
+//                             console.log(e);
+//                           });
+//                       });
+//                     }
+//                     if (
+//                       Number(contract_balance._hex) / 1e6 >
+//                       Number(withdraw_limit) + 100
+//                     ) {
+//                       const result2 = await contract
+//                         .withdrawIncome(
+//                           waddress,
+//                           (Number(withdrawal_amount) - 7) * 1e6,
+//                           Number(admin_charge) * 1e6,
+//                           withdraw_limit,
+//                           Number(7) * 1e6
+//                         )
+//                         .send({
+//                           feelimit: 200000000,
+//                         });
 
-                if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
-                  if (req_withdrawl >= 100) {
-                    await Registration.updateOne({
-                        investorId: investorId,
-                      }, {
-                        $set: {
-                          vip2_wallet: Number(it.vip2_wallet) -
-                            Number(req_withdrawl) * 1e6,
-                          withdraw_vip_income: Number(it.withdraw_vip_income) +
-                            Number(req_withdrawl) * 1e6,
-                        },
-                      })
-                      .then(() => {
-                        withdrawal(
-                          investorId,
-                          it.waddress,
-                          it.random_id,
-                          (req_withdrawl * 90) / 100,
-                          ref_data.investorId,
-                          ref_data.random_id,
-                          (req_withdrawl * 2.5) / 100,
-                          (req_withdrawl * 7.5) / 100,
-                          req_withdrawl
-                        );
-                      })
-                      .catch(async (error) => {
-                        await withraw_lock(investorId, 0);
-                        console.log(
-                          "Error in vip2_income_withdrawal_request ",
-                          error.message
-                        );
-                        return res.status(400).json({
-                          status: false,
-                          message: "Some error occurred. If it continues, contact support!",
-                        });
-                      });
-                  } else {
-                    // await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Withdrawal Amount should be greater than 100 TRX",
-                    });
-                  }
-                } else {
-                  // await withraw_lock(investorId, 0);
-                  return res.status(400).json({
-                    status: "false",
-                    message: "Invalid Amount for Withdrawal Request",
-                  });
-                }
-              } else {
-                // await withraw_lock(investorId, 0);
-                return res.status(200).json({
-                  status: false,
-                  message: "Some error occurred. If it continues, contact support!",
-                });
-              }
-            })
-            .catch((error) => {
-              console.log("Error in withdrawal_request ", error.message);
-              withraw_lock(investorId, 3, 3, ip);
-              return res.status(400).json({
-                status: false,
-                message: "Something went wrong. If it continues, contact support!",
-              });
-            });
-        }
-      } else {
-        return res.status(400).json({
-          status: "false",
-          message: "This wallet Address does not exist. Join First!",
-        });
-      }
-    } else {
-      return res.status(400).json({
-        status: "false",
-        message:
-          // "Invalid Parameters!",
-          "Due to safety measures Withdrawals are on hold for 7-8 hours!",
-      });
-    }
-  } catch (error) {
-    console.log("Error in vip2_income_withdrawal_request ", error.message);
-    return res.status(400).json({
-      status: false,
-      message: "Some error occurred. If it continues, contact support!",
-    });
-  }
-}
+//                       var maxcount = 0;
+//                       var intervalobj = setInterval(async () => {
+//                         maxcount = maxcount + 1;
+//                         checkres = await checkwithdraw(result2);
+//                         if ((checkres && checkres.block) || maxcount > 3) {
+//                           clearInterval(intervalobj);
+//                           if (
+//                             checkres &&
+//                             checkres.hash == result2 &&
+//                             checkres.contractRet &&
+//                             checkres.contractRet == "SUCCESS"
+//                           ) {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 1,
+//                               withdrawal_type: "VIP 2 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
+//                             const trancsaction = new Transaction({
+//                               investorId: sponsorId,
+//                               random_id: sponsor_random_id,
+//                               transaction_id: result2,
+//                               income_from_id: investorId,
+//                               income_from_random_id: random_id,
+//                               total_income: sponsor_withdrawal_amount,
+//                               income_type: "VIP 2 SPONSOR INCOME",
+//                               status: 1,
+//                               income_date: new Date().getTime(),
+//                             });
+//                             await trancsaction.save();
+//                             await Registration.updateOne({
+//                                 investorId: sponsorId,
+//                               }, {
+//                                 $set: {
+//                                   wallet_amount: Number(ref_data.wallet_amount) +
+//                                     Number(sponsor_withdrawal_amount),
+//                                 },
+//                               })
+//                               .then(async (data) => {
+//                                 if (data) {}
+//                               })
+//                               .catch((error) => {
+//                                 console.log(
+//                                   "Error in vip2_income_withdrawal_request ",
+//                                   error.message
+//                                 );
+//                                 return res.status(400).json({
+//                                   status: false,
+//                                   message: "Some error occurred. If it continues, contact support!",
+//                                 });
+//                               });
+//                           } else {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 0,
+//                               withdrawal_type: "VIP 2 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
+//                             await withraw_lock(investorId, 0);
+//                             return res.status(400).json({
+//                               status: false,
+//                               message: "Withdrawal unsuccessful!",
+//                             });
+//                           }
+//                         } else {
+//                           await withraw_lock(investorId, 0);
+//                           return res.status(400).json({
+//                             status: "error",
+//                             message: "Withdrawal timeout!",
+//                           });
+//                         }
+//                       }, 10000);
+//                     } else {
+//                       await withraw_lock(investorId, 0);
+//                       return res.status(400).json({
+//                         status: "false",
+//                         message: "Insufficient balance in Contract!",
+//                       });
+//                     }
+//                   } catch (error) {
+//                     await Registration.updateOne({
+//                       investorId: investorId,
+//                     }, {
+//                       $set: {
+//                         vip2_wallet: Number(it.vip2_wallet) +
+//                           Number(req_withdrawl) * 1e6,
+//                         withdraw_vip_income: Number(it.withdraw_vip_income) -
+//                           Number(req_withdrawl) * 1e6,
+//                       },
+//                     }).then(async () => {
+//                       await withraw_lock(investorId, 0);
+//                       console.log(
+//                         "Error in vip2_income_withdrawal_request ",
+//                         error.message
+//                       );
+//                       return res.status(400).json({
+//                         status: false,
+//                         message: "Some error occurred. If it continues, contact support!",
+//                       });
+//                     });
+//                     await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Some error occurred!",
+//                     });
+//                   }
+//                 }
 
-async function vip3_income_withdrawal_request(req, res) {
-  try {
-    const investorId = req.body.investorId;
-    const waddress = req.body.waddress;
-    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    // const ip = req.connection.remoteAddress;
-    // if (waddress && investorId) {
-    if (false) {
-      const it = await Registration.findOne({
-        investorId: investorId,
-        waddress: waddress,
-      }).exec();
-      if (it) {
-        const req_withdrawl = req.body.withdrawl_amount;
-        const withdraw_locked = await Withdrawal_lock.findOne({
-          investorId: investorId,
-        }).exec();
-        if (withdraw_locked) {
-          const ct = Number(withdraw_locked.count);
-          withraw_lock(investorId, 3, ct + 1, ip);
-          return res.status(400).json({
-            status: false,
-            message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
-          });
-        } else {
-          withraw_lock(investorId, 1, 0, ip)
-            .then(async (data) => {
-              if (data) {
-                const ref_data = await Registration.findOne({
-                  investorId: it.referrerId,
-                }).exec();
-                const wallet_balance = it.vip3_wallet;
-                const siteData = await SiteData.findOne({}).exec();
-                const privateKey = siteData.private_key;
-                const node = {
-                  fullNode: "https://api.trongrid.io",
-                  solidityNode: "https://api.trongrid.io",
-                  privateKey,
-                };
-                const tronweb = new tronWeb(node);
-                async function withdrawal(
-                  investorId,
-                  waddress,
-                  random_id,
-                  withdrawal_amount,
-                  sponsorId,
-                  sponsor_random_id,
-                  sponsor_withdrawal_amount,
-                  admin_charge,
-                  withdraw_limit
-                ) {
-                  try {
-                    const contract = await tronweb
-                      .contract()
-                      .at(CONTRACT_ADDRESS);
-                    const contract_balance = await contract.getBalance().call();
-                    let checkres = [];
+//                 if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
+//                   if (req_withdrawl >= 100) {
+//                     await Registration.updateOne({
+//                         investorId: investorId,
+//                       }, {
+//                         $set: {
+//                           vip2_wallet: Number(it.vip2_wallet) -
+//                             Number(req_withdrawl) * 1e6,
+//                           withdraw_vip_income: Number(it.withdraw_vip_income) +
+//                             Number(req_withdrawl) * 1e6,
+//                         },
+//                       })
+//                       .then(() => {
+//                         withdrawal(
+//                           investorId,
+//                           it.waddress,
+//                           it.random_id,
+//                           (req_withdrawl * 90) / 100,
+//                           ref_data.investorId,
+//                           ref_data.random_id,
+//                           (req_withdrawl * 2.5) / 100,
+//                           (req_withdrawl * 7.5) / 100,
+//                           req_withdrawl
+//                         );
+//                       })
+//                       .catch(async (error) => {
+//                         await withraw_lock(investorId, 0);
+//                         console.log(
+//                           "Error in vip2_income_withdrawal_request ",
+//                           error.message
+//                         );
+//                         return res.status(400).json({
+//                           status: false,
+//                           message: "Some error occurred. If it continues, contact support!",
+//                         });
+//                       });
+//                   } else {
+//                     // await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Withdrawal Amount should be greater than 100 TRX",
+//                     });
+//                   }
+//                 } else {
+//                   // await withraw_lock(investorId, 0);
+//                   return res.status(400).json({
+//                     status: "false",
+//                     message: "Invalid Amount for Withdrawal Request",
+//                   });
+//                 }
+//               } else {
+//                 // await withraw_lock(investorId, 0);
+//                 return res.status(200).json({
+//                   status: false,
+//                   message: "Some error occurred. If it continues, contact support!",
+//                 });
+//               }
+//             })
+//             .catch((error) => {
+//               console.log("Error in withdrawal_request ", error.message);
+//               withraw_lock(investorId, 3, 3, ip);
+//               return res.status(400).json({
+//                 status: false,
+//                 message: "Something went wrong. If it continues, contact support!",
+//               });
+//             });
+//         }
+//       } else {
+//         return res.status(400).json({
+//           status: "false",
+//           message: "This wallet Address does not exist. Join First!",
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({
+//         status: "false",
+//         message:
+//           // "Invalid Parameters!",
+//           "Due to safety measures Withdrawals are on hold for 7-8 hours!",
+//       });
+//     }
+//   } catch (error) {
+//     console.log("Error in vip2_income_withdrawal_request ", error.message);
+//     return res.status(400).json({
+//       status: false,
+//       message: "Some error occurred. If it continues, contact support!",
+//     });
+//   }
+// }
 
-                    function checkwithdraw(txid) {
-                      return new Promise((resolve, reject) => {
-                        fetch(
-                            `https://api.tronscan.org/api/transaction-info?hash=${txid}`
-                          )
-                          .then((res) => resolve(res.json()))
-                          .catch((e) => {
-                            reject(e);
-                            console.log(e);
-                          });
-                      });
-                    }
-                    if (
-                      Number(contract_balance._hex) / 1e6 >
-                      Number(withdraw_limit) + 100
-                    ) {
-                      const result2 = await contract
-                        .withdrawIncome(
-                          waddress,
-                          (Number(withdrawal_amount) - 7) * 1e6,
-                          Number(admin_charge) * 1e6,
-                          withdraw_limit,
-                          Number(7) * 1e6
-                        )
-                        .send({
-                          feelimit: 200000000,
-                        });
+// async function vip3_income_withdrawal_request(req, res) {
+//   try {
+//     const investorId = req.body.investorId;
+//     const waddress = req.body.waddress;
+//     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+//     // const ip = req.connection.remoteAddress;
+//     // if (waddress && investorId) {
+//     if (false) {
+//       const it = await Registration.findOne({
+//         investorId: investorId,
+//         waddress: waddress,
+//       }).exec();
+//       if (it) {
+//         const req_withdrawl = req.body.withdrawl_amount;
+//         const withdraw_locked = await Withdrawal_lock.findOne({
+//           investorId: investorId,
+//         }).exec();
+//         if (withdraw_locked) {
+//           const ct = Number(withdraw_locked.count);
+//           withraw_lock(investorId, 3, ct + 1, ip);
+//           return res.status(400).json({
+//             status: false,
+//             message: "Please wait for the confirmation of the previous withdrawal. If this continues contact support!",
+//           });
+//         } else {
+//           withraw_lock(investorId, 1, 0, ip)
+//             .then(async (data) => {
+//               if (data) {
+//                 const ref_data = await Registration.findOne({
+//                   investorId: it.referrerId,
+//                 }).exec();
+//                 const wallet_balance = it.vip3_wallet;
+//                 const siteData = await SiteData.findOne({}).exec();
+//                 const privateKey = siteData.private_key;
+//                 const node = {
+//                   fullNode: "https://api.trongrid.io",
+//                   solidityNode: "https://api.trongrid.io",
+//                   privateKey,
+//                 };
+//                 const tronweb = new tronWeb(node);
+//                 async function withdrawal(
+//                   investorId,
+//                   waddress,
+//                   random_id,
+//                   withdrawal_amount,
+//                   sponsorId,
+//                   sponsor_random_id,
+//                   sponsor_withdrawal_amount,
+//                   admin_charge,
+//                   withdraw_limit
+//                 ) {
+//                   try {
+//                     const contract = await tronweb
+//                       .contract()
+//                       .at(CONTRACT_ADDRESS);
+//                     const contract_balance = await contract.getBalance().call();
+//                     let checkres = [];
 
-                      var maxcount = 0;
-                      var intervalobj = setInterval(async () => {
-                        maxcount = maxcount + 1;
-                        checkres = await checkwithdraw(result2);
-                        if ((checkres && checkres.block) || maxcount > 3) {
-                          clearInterval(intervalobj);
-                          if (
-                            checkres &&
-                            checkres.hash == result2 &&
-                            checkres.contractRet &&
-                            checkres.contractRet == "SUCCESS"
-                          ) {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 1,
-                              withdrawal_type: "VIP 3 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
-                            const trancsaction = new Transaction({
-                              investorId: sponsorId,
-                              random_id: sponsor_random_id,
-                              transaction_id: result2,
-                              income_from_id: investorId,
-                              income_from_random_id: random_id,
-                              total_income: sponsor_withdrawal_amount,
-                              income_type: "VIP 3 SPONSOR INCOME",
-                              status: 1,
-                              income_date: new Date().getTime(),
-                            });
-                            await trancsaction.save();
-                            await Registration.updateOne({
-                                investorId: sponsorId,
-                              }, {
-                                $set: {
-                                  wallet_amount: Number(ref_data.wallet_amount) +
-                                    Number(sponsor_withdrawal_amount),
-                                },
-                              })
-                              .then(async (data) => {
-                                if (data) {
-                                  await withraw_lock(investorId, 0);
-                                  return res.status(200).json({
-                                    status: "success",
-                                    message: "Withdrawal Successful!",
-                                  });
-                                }
-                              })
-                              .catch((error) => {
-                                console.log(
-                                  "Error in vip3_income_withdrawal_request ",
-                                  c.message
-                                );
-                                return res.status(400).json({
-                                  status: false,
-                                  message: "Some error occurred. If it continues, contact support!",
-                                });
-                              });
-                          } else {
-                            const withdrawlhistory = new Withdrawlhistory({
-                              investorId: investorId,
-                              random_id: random_id,
-                              total_amount: withdraw_limit,
-                              withdrawal_amount: withdrawal_amount,
-                              block_timestamp: new Date().getTime(),
-                              transaction_id: result2,
-                              ip_address: ip,
-                              payout_status: 0,
-                              withdrawal_type: "VIP 3 WITHDRAWAL",
-                            });
-                            await withdrawlhistory.save();
+//                     function checkwithdraw(txid) {
+//                       return new Promise((resolve, reject) => {
+//                         fetch(
+//                             `https://api.tronscan.org/api/transaction-info?hash=${txid}`
+//                           )
+//                           .then((res) => resolve(res.json()))
+//                           .catch((e) => {
+//                             reject(e);
+//                             console.log(e);
+//                           });
+//                       });
+//                     }
+//                     if (
+//                       Number(contract_balance._hex) / 1e6 >
+//                       Number(withdraw_limit) + 100
+//                     ) {
+//                       const result2 = await contract
+//                         .withdrawIncome(
+//                           waddress,
+//                           (Number(withdrawal_amount) - 7) * 1e6,
+//                           Number(admin_charge) * 1e6,
+//                           withdraw_limit,
+//                           Number(7) * 1e6
+//                         )
+//                         .send({
+//                           feelimit: 200000000,
+//                         });
 
-                            await withraw_lock(investorId, 0);
-                            return res.status(400).json({
-                              status: false,
-                              message: "Withdrawal unsuccessful!",
-                            });
-                          }
-                        } else {
-                          await Registration.updateOne({
-                            investorId: investorId,
-                          }, {
-                            $set: {
-                              vip3_wallet: Number(it.vip3_wallet) +
-                                Number(req_withdrawl) * 1e6,
-                              withdraw_vip_income: Number(it.withdraw_vip_income) -
-                                Number(req_withdrawl) * 1e6,
-                            },
-                          }).then(async () => {
-                            await withraw_lock(investorId, 0);
-                            console.log(
-                              "Error in vip3_income_withdrawal_request ",
-                              error.message
-                            );
-                            return res.status(400).json({
-                              status: false,
-                              message: "Some error occurred. If it continues, contact support!",
-                            });
-                          });
-                          return res.status(400).json({
-                            status: "error",
-                            message: "Withdrawal timeout!",
-                          });
-                        }
-                      }, 10000);
-                    } else {
-                      await withraw_lock(investorId, 0);
-                      return res.status(400).json({
-                        status: "false",
-                        message: "Insufficient balance in Contract!",
-                      });
-                    }
-                  } catch (error) {
-                    await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Some error occurred!",
-                    });
-                  }
-                }
+//                       var maxcount = 0;
+//                       var intervalobj = setInterval(async () => {
+//                         maxcount = maxcount + 1;
+//                         checkres = await checkwithdraw(result2);
+//                         if ((checkres && checkres.block) || maxcount > 3) {
+//                           clearInterval(intervalobj);
+//                           if (
+//                             checkres &&
+//                             checkres.hash == result2 &&
+//                             checkres.contractRet &&
+//                             checkres.contractRet == "SUCCESS"
+//                           ) {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 1,
+//                               withdrawal_type: "VIP 3 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
+//                             const trancsaction = new Transaction({
+//                               investorId: sponsorId,
+//                               random_id: sponsor_random_id,
+//                               transaction_id: result2,
+//                               income_from_id: investorId,
+//                               income_from_random_id: random_id,
+//                               total_income: sponsor_withdrawal_amount,
+//                               income_type: "VIP 3 SPONSOR INCOME",
+//                               status: 1,
+//                               income_date: new Date().getTime(),
+//                             });
+//                             await trancsaction.save();
+//                             await Registration.updateOne({
+//                                 investorId: sponsorId,
+//                               }, {
+//                                 $set: {
+//                                   wallet_amount: Number(ref_data.wallet_amount) +
+//                                     Number(sponsor_withdrawal_amount),
+//                                 },
+//                               })
+//                               .then(async (data) => {
+//                                 if (data) {
+//                                   await withraw_lock(investorId, 0);
+//                                   return res.status(200).json({
+//                                     status: "success",
+//                                     message: "Withdrawal Successful!",
+//                                   });
+//                                 }
+//                               })
+//                               .catch((error) => {
+//                                 console.log(
+//                                   "Error in vip3_income_withdrawal_request ",
+//                                   c.message
+//                                 );
+//                                 return res.status(400).json({
+//                                   status: false,
+//                                   message: "Some error occurred. If it continues, contact support!",
+//                                 });
+//                               });
+//                           } else {
+//                             const withdrawlhistory = new Withdrawlhistory({
+//                               investorId: investorId,
+//                               random_id: random_id,
+//                               total_amount: withdraw_limit,
+//                               withdrawal_amount: withdrawal_amount,
+//                               block_timestamp: new Date().getTime(),
+//                               transaction_id: result2,
+//                               ip_address: ip,
+//                               payout_status: 0,
+//                               withdrawal_type: "VIP 3 WITHDRAWAL",
+//                             });
+//                             await withdrawlhistory.save();
 
-                if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
-                  if (req_withdrawl >= 100) {
-                    await Registration.updateOne({
-                        investorId: investorId,
-                      }, {
-                        $set: {
-                          vip3_wallet: Number(it.vip3_wallet) -
-                            Number(req_withdrawl) * 1e6,
-                          withdraw_vip_income: Number(it.withdraw_vip_income) +
-                            Number(req_withdrawl) * 1e6,
-                        },
-                      })
-                      .then(() => {
-                        withdrawal(
-                          investorId,
-                          it.waddress,
-                          it.random_id,
-                          (req_withdrawl * 90) / 100,
-                          ref_data.investorId,
-                          ref_data.random_id,
-                          (req_withdrawl * 2.5) / 100,
-                          (req_withdrawl * 7.5) / 100,
-                          req_withdrawl
-                        );
-                      })
-                      .catch(async (error) => {
-                        await withraw_lock(investorId, 0);
-                        console.log(
-                          "Error in vip3_income_withdrawal_request ",
-                          error.message
-                        );
-                        return res.status(400).json({
-                          status: false,
-                          message: "Some error occurred. If it continues, contact support!",
-                        });
-                      });
-                  } else {
-                    // await withraw_lock(investorId, 0);
-                    return res.status(400).json({
-                      status: "false",
-                      message: "Withdrawal Amount should be greater than 100 TRX",
-                    });
-                  }
-                } else {
-                  // await withraw_lock(investorId, 0);
-                  return res.status(400).json({
-                    status: "false",
-                    message: "Invalid Amount for Withdrawal Request",
-                  });
-                }
-              } else {
-                // await withraw_lock(investorId, 0);
-                return res.status(200).json({
-                  status: false,
-                  message: "Some error occurred. If it continues, contact support!",
-                });
-              }
-            })
-            .catch((error) => {
-              console.log("Error in withdrawal_request ", error.message);
-              withraw_lock(investorId, 3, 3, ip);
-              return res.status(400).json({
-                status: false,
-                message: "Something went wrong. If it continues, contact support!",
-              });
-            });
-        }
-      } else {
-        return res.status(400).json({
-          status: "false",
-          message: "This wallet Address does not exist. Join First!",
-        });
-      }
-    } else {
-      return res.status(400).json({
-        status: "false",
-        message:
-          // "Invalid Parameters!",
-          "Due to safety measures Withdrawals are on hold for 7-8 hours!",
-      });
-    }
-  } catch (error) {
-    console.log("Error in vip3_income_withdrawal_request ", error.message);
-    return res.status(400).json({
-      status: false,
-      message: "Some error occurred. If it continues, contact support!",
-    });
-  }
-}
+//                             await withraw_lock(investorId, 0);
+//                             return res.status(400).json({
+//                               status: false,
+//                               message: "Withdrawal unsuccessful!",
+//                             });
+//                           }
+//                         } else {
+//                           await Registration.updateOne({
+//                             investorId: investorId,
+//                           }, {
+//                             $set: {
+//                               vip3_wallet: Number(it.vip3_wallet) +
+//                                 Number(req_withdrawl) * 1e6,
+//                               withdraw_vip_income: Number(it.withdraw_vip_income) -
+//                                 Number(req_withdrawl) * 1e6,
+//                             },
+//                           }).then(async () => {
+//                             await withraw_lock(investorId, 0);
+//                             console.log(
+//                               "Error in vip3_income_withdrawal_request ",
+//                               error.message
+//                             );
+//                             return res.status(400).json({
+//                               status: false,
+//                               message: "Some error occurred. If it continues, contact support!",
+//                             });
+//                           });
+//                           return res.status(400).json({
+//                             status: "error",
+//                             message: "Withdrawal timeout!",
+//                           });
+//                         }
+//                       }, 10000);
+//                     } else {
+//                       await withraw_lock(investorId, 0);
+//                       return res.status(400).json({
+//                         status: "false",
+//                         message: "Insufficient balance in Contract!",
+//                       });
+//                     }
+//                   } catch (error) {
+//                     await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Some error occurred!",
+//                     });
+//                   }
+//                 }
+
+//                 if (Number(wallet_balance) / 1e6 >= req_withdrawl && req_withdrawl <= 10000) {
+//                   if (req_withdrawl >= 100) {
+//                     await Registration.updateOne({
+//                         investorId: investorId,
+//                       }, {
+//                         $set: {
+//                           vip3_wallet: Number(it.vip3_wallet) -
+//                             Number(req_withdrawl) * 1e6,
+//                           withdraw_vip_income: Number(it.withdraw_vip_income) +
+//                             Number(req_withdrawl) * 1e6,
+//                         },
+//                       })
+//                       .then(() => {
+//                         withdrawal(
+//                           investorId,
+//                           it.waddress,
+//                           it.random_id,
+//                           (req_withdrawl * 90) / 100,
+//                           ref_data.investorId,
+//                           ref_data.random_id,
+//                           (req_withdrawl * 2.5) / 100,
+//                           (req_withdrawl * 7.5) / 100,
+//                           req_withdrawl
+//                         );
+//                       })
+//                       .catch(async (error) => {
+//                         await withraw_lock(investorId, 0);
+//                         console.log(
+//                           "Error in vip3_income_withdrawal_request ",
+//                           error.message
+//                         );
+//                         return res.status(400).json({
+//                           status: false,
+//                           message: "Some error occurred. If it continues, contact support!",
+//                         });
+//                       });
+//                   } else {
+//                     // await withraw_lock(investorId, 0);
+//                     return res.status(400).json({
+//                       status: "false",
+//                       message: "Withdrawal Amount should be greater than 100 TRX",
+//                     });
+//                   }
+//                 } else {
+//                   // await withraw_lock(investorId, 0);
+//                   return res.status(400).json({
+//                     status: "false",
+//                     message: "Invalid Amount for Withdrawal Request",
+//                   });
+//                 }
+//               } else {
+//                 // await withraw_lock(investorId, 0);
+//                 return res.status(200).json({
+//                   status: false,
+//                   message: "Some error occurred. If it continues, contact support!",
+//                 });
+//               }
+//             })
+//             .catch((error) => {
+//               console.log("Error in withdrawal_request ", error.message);
+//               withraw_lock(investorId, 3, 3, ip);
+//               return res.status(400).json({
+//                 status: false,
+//                 message: "Something went wrong. If it continues, contact support!",
+//               });
+//             });
+//         }
+//       } else {
+//         return res.status(400).json({
+//           status: "false",
+//           message: "This wallet Address does not exist. Join First!",
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({
+//         status: "false",
+//         message:
+//           // "Invalid Parameters!",
+//           "Due to safety measures Withdrawals are on hold for 7-8 hours!",
+//       });
+//     }
+//   } catch (error) {
+//     console.log("Error in vip3_income_withdrawal_request ", error.message);
+//     return res.status(400).json({
+//       status: false,
+//       message: "Some error occurred. If it continues, contact support!",
+//     });
+//   }
+// }
+
+
 async function retopup(req, res) {
   try {
     const investorId = req.body.investorId;
