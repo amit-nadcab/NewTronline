@@ -44,22 +44,22 @@ export default function AccountSummary() {
       },
     },
 
-    {
-      name: "Transaction Id",
-      selector: (row) => (
-        <a
-          href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
-          target="_blank"
-        >
-          {row.transaction_id}
-        </a>
-      ),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
+    // {
+    //   name: "Transaction Id",
+    //   selector: (row) => (
+    //     <a
+    //       href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
+    //       target="_blank"
+    //     >
+    //       {row.transaction_id}
+    //     </a>
+    //   ),
+    //   sortable: true,
+    //   style: {
+    //     backgroundColor: "transparent",
+    //     color: "black",
+    //   },
+    // },
     {
       name: "Reward",
       selector: (row) => row.total_income,
