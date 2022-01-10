@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
-const registration = new mongoose.Schema({
+const registration = new mongoose.Schema(
+  {
     id: { type: Number },
-    random_id: { type: Number, unique:true  },
-    waddress: { type: String, unique:true },
+    random_id: { type: Number, unique: true },
+    waddress: { type: String, unique: true },
     investor: { type: String },
-    investorId: { type: Number, unique:true  },
+    investorId: { type: Number, unique: true },
     referrerId: { type: Number },
     referrer: { type: String },
     promoterId: { type: Number },
     promoter: { type: String },
     block_timestamp: { type: String },
-    transaction_id: { type: String, unique:true  },
+    transaction_id: { type: String, unique: true },
     wallet_amount: { type: Number, default: 0 },
     direct_member: { type: Number, default: 0 },
     total_investment: { type: Number, default: 0 },
@@ -29,5 +30,7 @@ const registration = new mongoose.Schema({
     vip3_income: { type: Number, default: 0 },
     vip3_reinvest_count: { type: Number, default: 0 },
     withdraw_locked: { type: Number, default: 0 },
-}, { timestamps: true, collection: 'Registration' })
-module.exports = mongoose.model('Registration', registration);
+  },
+  { timestamps: true, collection: "Registration" }
+);
+module.exports = mongoose.model("Registration", registration);

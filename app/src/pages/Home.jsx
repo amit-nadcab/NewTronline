@@ -1348,9 +1348,9 @@ export default function Home() {
             {/* first row */}
             <div className="row">
                <div className="col-12 d-flex justify-content-center my-2">
-                     <div className="rlt">
+                     {/* <div className="rlt">
                         Time to release vip's income : <Counter time={new Date().getTime()} cb={() => { }} />
-                     </div>
+                     </div> */}
                </div>
             </div>
             <div className="row">
@@ -2096,9 +2096,8 @@ export default function Home() {
                   {state
                     ? state.investor_id > 0
                       ? state.personaldetails
-                        ? state.personaldetails.total_deposited
-                          ? Number(state.personaldetails.total_deposited) /
-                              1e6 +
+                        ? state.personaldetails.income_withdraw
+                          ? Number(state.personaldetails.income_withdraw) +
                             " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
@@ -2114,8 +2113,8 @@ export default function Home() {
                   {state
                     ? state.investor_id > 0
                       ? state.personaldetails
-                        ? state.personaldetails.total_withdraw
-                          ? Number(state.personaldetails.total_withdraw) +
+                        ? state.personaldetails.vip_withdraw
+                          ? Number(state.personaldetails.vip_withdraw) +
                             " TRX"
                           : 0 + " TRX"
                         : 0 + " TRX"
@@ -2340,7 +2339,7 @@ export default function Home() {
               >
                 <a
                   className="grad_btn px-0 text-light"
-                  href="https://shasta.tronscan.org/#/contract/TPA3ESorUPgNX8e3a9o3nqCrfDncnGdDoY"
+                  href="https://tronscan.org/#/contract/TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ"
                   target="_blank"
                   style={{ borderRadius: "10px" }}
                 >

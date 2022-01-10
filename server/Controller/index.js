@@ -6,7 +6,7 @@ const Deposit = require("../models/deposit");
 const VipHistory = require("../models/vip_history");
 
 // var CONTRACT = "TNzheE3zk4YqCLYT2sMQQUGHMuReAgxPVC";
-var CONTRACT = "TC7d8kHYRsTnmvrEG8CJS329hFeyNL7h9d";
+var CONTRACT = "TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ";
 
 const tronWeb = new TronWeb({
   fullHost: "https://api.trongrid.io",
@@ -110,9 +110,7 @@ async function generateEventQuery(result) {
                     }
                   }).then(async () => {
                     let dep_status = 1;
-                    const val_dep = await Deposit.findOne({
-                      select_qry
-                    });
+                    const val_dep = await Deposit.findOne(JSON.parse(select_qry));
                     if (val_dep == null)
                       dep_status = 0;
                     console.log("TX ID 1::", trx_amt, invest, dep_status, val_dep)
@@ -270,18 +268,18 @@ exports.foreverExcute = async function foreverExcute(
 ) {
   if (!mintimestamp) {
     mintimestamp = await getLastEntryofRegistration();
-    // console.log("min timestamp::", mintimestamp);
+    console.log("min timestamp::", mintimestamp);
   } else {
-    // console.log("puranka  timestamp::", mintimestamp, );
+    console.log("puranka  timestamp::", mintimestamp, );
   }
   fetch(
-      `https://api.shasta.trongrid.io/v1/contracts/${CONTRACT}/events?limit=100&min_timestamp=${mintimestamp}&onlyUnconfirmed=true&order_by=timestamp,asc&fingerprint=${fingerprint}`
+      `https://api.trongrid.io/v1/contracts/${CONTRACT}/events?limit=100&min_timestamp=${mintimestamp}&onlyUnconfirmed=true&order_by=timestamp,asc&fingerprint=${fingerprint}`
     )
     .then((d) => d.json())
     .then(async (result) => {
       // console.log(result)
       if (result.data) {
-        // console.log(result.data);
+        console.log(result.data);
         let res = await generateEventQuery(result.data);
       }
       if (result.meta.fingerprint ? true : false)

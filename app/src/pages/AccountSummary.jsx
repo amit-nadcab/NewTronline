@@ -602,7 +602,7 @@ export default function AccountSummary() {
               >
                 <a
                   className="grad_btn px-0 mb-2 text-light"
-                  href="https://tronscan.org/#/contract/TK3rBucxzpQk2BYMuAUwGc62mz3wYMf4wU"
+                  href="https://tronscan.org/#/contract/TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ"
                   target="_blank"
                   style={{ borderRadius: "10px" }}
                 >
