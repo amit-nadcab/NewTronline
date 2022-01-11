@@ -2547,7 +2547,53 @@ async function vip1_wallet_correction(req, res) {
     console.log("Error in Withdrawal ", error.message);
   }
 }
-
+async function get_upline_downline_incomes(req, res) {
+  try {
+    const investorId = 17;
+    let sum = 0;
+    let l1 = 0;
+    let w_amt = 0;
+    await Transaction.find({
+      investorId: investorId,
+      income_type: {
+        $in: [
+          "SPONSORING INCOME",
+          "COMMUNITY LEVELUP INCOME",
+          "VIP 1 SPONSOR INCOME",
+          "VIP 2 SPONSOR INCOME",
+          "VIP 3 SPONSOR INCOME",
+        ],
+      },
+    }).then((data) => {
+      l1 = data.length;
+      let dd = data.map(async (it) => {
+        sum = sum + it.total_income;
+      });
+      Promise.all(dd).then(async () => {
+        let res = await Withdrawlhistory.find({
+          investorId: investorId,
+          withdrawal_type: "INCOME WITHDRAWAL",
+        });
+        let ff = res.map(async (it) => {
+          w_amt = w_amt + Number(it.total_amount);
+        });
+        Promise.all(ff).then(async () => {
+          let resu = await Registration.findOne(
+            {
+              investorId: investorId,
+            },
+            "wallet_amount"
+          );
+          w_amt = w_amt + Number(resu.wallet_amount);
+          console.log("DATA::", sum, l1, w_amt, res.length);
+        });
+      });
+    });
+  } catch (error) {
+    console.log("Error in get_upline_downline_incomes Record!", error.message);
+  }
+}
+get_upline_downline_incomes();
 module.exports = {
   calculate_leveldown_income_from_deposit,
   calculate_levelup_income_from_deposit,
