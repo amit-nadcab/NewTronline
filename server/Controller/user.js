@@ -1050,7 +1050,6 @@ async function vip1_income_withdrawal_request(req, res) {
                         waddress: waddress,
                         admin_charge: admin_charge,
                         withdrawal_amount: withdrawal_amount,
-                        block_timestamp: new Date().getTime(),
                         ip_address: ip,
                         payout_status: 0,
                         withdrawal_type: "VIP 1 WITHDRAWAL",
@@ -1226,7 +1225,7 @@ async function vip2_income_withdrawal_request(req, res) {
                   const ref_data = await Registration.findOne({
                     investorId: it.referrerId,
                   }).exec();
-                  const wallet_balance = it.vip1_wallet;
+                  const wallet_balance = it.vip2_wallet;
                   async function withdrawal(
                     investorId,
                     waddress,
@@ -1246,7 +1245,6 @@ async function vip2_income_withdrawal_request(req, res) {
                         waddress: waddress,
                         admin_charge: admin_charge,
                         withdrawal_amount: withdrawal_amount,
-                        block_timestamp: new Date().getTime(),
                         ip_address: ip,
                         payout_status: 0,
                         withdrawal_type: "VIP 2 WITHDRAWAL",
@@ -1442,7 +1440,6 @@ async function vip3_income_withdrawal_request(req, res) {
                         waddress: waddress,
                         admin_charge: admin_charge,
                         withdrawal_amount: withdrawal_amount,
-                        block_timestamp: new Date().getTime(),
                         ip_address: ip,
                         payout_status: 0,
                         withdrawal_type: "VIP 3 WITHDRAWAL",
@@ -2549,46 +2546,116 @@ async function vip1_wallet_correction(req, res) {
 }
 async function get_upline_downline_incomes(req, res) {
   try {
-    const investorId = 17;
-    let sum = 0;
-    let l1 = 0;
-    let w_amt = 0;
-    await Transaction.find({
-      investorId: investorId,
-      income_type: {
-        $in: [
-          "SPONSORING INCOME",
-          "COMMUNITY LEVELUP INCOME",
-          "VIP 1 SPONSOR INCOME",
-          "VIP 2 SPONSOR INCOME",
-          "VIP 3 SPONSOR INCOME",
-        ],
+    for (let i = 1; i < 1388; i++) {
+    const investorId = 1386;
+    const ddd = await Transaction.aggregate([{
+        $match: {
+          investorId: investorId,
+          income_type: {
+            $in: [
+              "SPONSORING INCOME",
+              "COMMUNITY LEVELUP INCOME",
+              "VIP 1 SPONSOR INCOME",
+              "VIP 2 SPONSOR INCOME",
+              "VIP 3 SPONSOR INCOME",
+            ],
+          },
+        },
       },
-    }).then((data) => {
-      l1 = data.length;
-      let dd = data.map(async (it) => {
-        sum = sum + it.total_income;
-      });
-      Promise.all(dd).then(async () => {
-        let res = await Withdrawlhistory.find({
+      {
+        $group: {
+          _id: null,
+          sum: {
+            $sum: "$total_income",
+          },
+        },
+      },
+    ]);
+    const sss = await Withdrawlhistory.aggregate([{
+        $match: {
           investorId: investorId,
           withdrawal_type: "INCOME WITHDRAWAL",
-        });
-        let ff = res.map(async (it) => {
-          w_amt = w_amt + Number(it.total_amount);
-        });
-        Promise.all(ff).then(async () => {
-          let resu = await Registration.findOne(
-            {
-              investorId: investorId,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          sum: {
+            $sum: "$total_amount",
+          },
+        },
+      },
+    ]);
+    let resu = await Registration.findOne({
+        investorId: investorId,
+      },
+      "wallet_amount"
+    );
+    console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0).toFixed(2), " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
+    }
+  } catch (error) {
+    console.log("Error in get_upline_downline_incomes Record!", error.message);
+  }
+}
+async function get_upline_downline_incomess(req, res) {
+  try {
+    for (let i = 1; i < 1388; i++) {
+      const investorId = i;
+      const ddd = await Transaction.aggregate([{
+          $match: {
+            investorId: investorId,
+            income_type: {
+              $in: [
+                "SPONSORING INCOME",
+                "COMMUNITY LEVELUP INCOME",
+                "VIP 1 SPONSOR INCOME",
+                "VIP 2 SPONSOR INCOME",
+                "VIP 3 SPONSOR INCOME",
+              ],
             },
-            "wallet_amount"
-          );
-          w_amt = w_amt + Number(resu.wallet_amount);
-          console.log("DATA::", sum, l1, w_amt, res.length);
-        });
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_income",
+            },
+          },
+        },
+      ]);
+      const sss = await Withdrawlhistory.aggregate([{
+          $match: {
+            investorId: investorId,
+            withdrawal_type: "INCOME WITHDRAWAL",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_amount",
+            },
+          },
+        },
+      ]);
+      // let resu = await Registration.findOne({
+      //     investorId: investorId,
+      //   },
+      //   "wallet_amount"
+      // );
+      let xx = Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0);
+      await Registration.updateOne({
+        investorId: investorId,
+      }, {
+        $set: {
+          wallet_amount: xx,
+        }
       });
-    });
+      console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0).toFixed(2), " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
+
+    }
+
   } catch (error) {
     console.log("Error in get_upline_downline_incomes Record!", error.message);
   }
