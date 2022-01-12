@@ -772,7 +772,7 @@ async function withdrawal_request(req, res) {
     const investorId = req.body.investorId;
     const waddress = req.body.waddress;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    if (true) {
+    if (1) {
       if (waddress && investorId) {
         const result = await Registration.findOne({
           investorId: investorId,
@@ -1005,7 +1005,7 @@ async function vip1_income_withdrawal_request(req, res) {
     const investorId = req.body.investorId;
     const waddress = req.body.waddress;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    if (true) {
+    if (1) {
       if (waddress && investorId) {
         const it = await Registration.findOne({
           investorId: investorId,
@@ -1200,7 +1200,7 @@ async function vip2_income_withdrawal_request(req, res) {
     const investorId = req.body.investorId;
     const waddress = req.body.waddress;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    if (true) {
+    if (1) {
       if (waddress && investorId) {
         const it = await Registration.findOne({
           investorId: investorId,
@@ -1395,7 +1395,7 @@ async function vip3_income_withdrawal_request(req, res) {
     const investorId = req.body.investorId;
     const waddress = req.body.waddress;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    if (true) {
+    if (1) {
       if (waddress && investorId) {
         const it = await Registration.findOne({
           investorId: investorId,
@@ -2440,7 +2440,7 @@ async function check_request_callback_payment(req, res) {
         function checkwithdraw(tx_id) {
           return new Promise((resolve, reject) => {
             fetch(
-                `https://shastapi.tronscan.org/api/transaction-info?hash=${tx_id}`
+                `https://api.tronscan.org/api/transaction-info?hash=${tx_id}`
               )
               .then((res) => resolve(res.json()))
               .catch((e) => {
@@ -2485,6 +2485,67 @@ async function check_request_callback_payment(req, res) {
     console.log(" error in cron_reinvest_income ", error.message);
   }
 }
+async function get_upline_downline_incomes(req, res) {
+  try {
+    for (let i = 1; i < 2; i++) {
+      const investorId = 633;
+      const ddd = await Transaction.aggregate([{
+          $match: {
+            investorId: investorId,
+            income_type: {
+              $in: [
+                "SPONSORING INCOME",
+                "COMMUNITY LEVELUP INCOME",
+                "VIP 1 SPONSOR INCOME",
+                "VIP 2 SPONSOR INCOME",
+                "VIP 3 SPONSOR INCOME",
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_income",
+            },
+          },
+        },
+      ]);
+      console.log("Total::", ddd ? ddd[0].sum : 0);
+      const sss = await Withdrawlhistory.aggregate([{
+          $match: {
+            investorId: investorId,
+            withdrawal_type: "INCOME WITHDRAWAL",
+            payout_status: {
+              $in: [1, 2]
+            }
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_amount",
+            },
+          },
+        },
+      ]);
+      console.log("Withraw::", sss );
+      let xx = Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0);
+      let resu = await Registration.findOne({
+          investorId: investorId,
+        },
+        "wallet_amount"
+      );
+      console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", xx, " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
+    }
+  } catch (error) {
+    console.log("Error in get_upline_downline_incomes Record!", error.message);
+  }
+}
+get_upline_downline_incomes()
+
 module.exports = {
   calculate_leveldown_income_from_deposit,
   calculate_levelup_income_from_deposit,
