@@ -826,7 +826,7 @@ async function withdrawal_request(req, res) {
                         .then(() => {
                           return res.status(200).json({
                             status: "success",
-                            message: "Withdrawal request raised successfully!",
+                            message: "Withdrawal request raised successfully. Payout will be released within 8 hours!",
                           });
                         })
                         .catch(() => {
@@ -851,7 +851,7 @@ async function withdrawal_request(req, res) {
                     wallet_balance >= req_withdrawl &&
                     req_withdrawl <= 10000
                   ) {
-                    if (req_withdrawl >= 100) {
+                    if (req_withdrawl >= 50) {
                       let req_withdrawl_after_admin_charge =
                         (req_withdrawl * 90) / 100;
                       let admin_charge = (req_withdrawl * 10) / 100;
@@ -1079,7 +1079,7 @@ async function vip1_income_withdrawal_request(req, res) {
                             await withraw_lock(investorId, 0);
                             return res.status(200).json({
                               status: "success",
-                              message: "Withdrawal request raised successfully!",
+                              message: "Withdrawal request raised successfully. Payout will be released within 8 hours!",
                             });
                           }
                         })
@@ -1106,7 +1106,7 @@ async function vip1_income_withdrawal_request(req, res) {
                     Number(wallet_balance) / 1e6 >= req_withdrawl &&
                     req_withdrawl <= 10000
                   ) {
-                    if (req_withdrawl >= 100) {
+                    if (req_withdrawl >= 50) {
                       await Registration.updateOne({
                           investorId: investorId,
                         }, {
@@ -1274,7 +1274,7 @@ async function vip2_income_withdrawal_request(req, res) {
                             await withraw_lock(investorId, 0);
                             return res.status(200).json({
                               status: "success",
-                              message: "Withdrawal request raised successfully!",
+                              message: "Withdrawal request raised successfully. Payout will be released within 8 hours!",
                             });
                           }
                         })
@@ -1301,7 +1301,7 @@ async function vip2_income_withdrawal_request(req, res) {
                     Number(wallet_balance) / 1e6 >= req_withdrawl &&
                     req_withdrawl <= 10000
                   ) {
-                    if (req_withdrawl >= 100) {
+                    if (req_withdrawl >= 50) {
                       await Registration.updateOne({
                           investorId: investorId,
                         }, {
@@ -1469,7 +1469,7 @@ async function vip3_income_withdrawal_request(req, res) {
                             await withraw_lock(investorId, 0);
                             return res.status(200).json({
                               status: "success",
-                              message: "Withdrawal request raised successfully!",
+                              message: "Withdrawal request raised successfully. Payout will be released within 8 hours!",
                             });
                           }
                         })
@@ -1496,7 +1496,7 @@ async function vip3_income_withdrawal_request(req, res) {
                     Number(wallet_balance) / 1e6 >= req_withdrawl &&
                     req_withdrawl <= 10000
                   ) {
-                    if (req_withdrawl >= 100) {
+                    if (req_withdrawl >= 50) {
                       await Registration.updateOne({
                           investorId: investorId,
                         }, {
@@ -2419,248 +2419,72 @@ async function delete_all_data() {
   //     });
   // }
 }
-
-//----------------------- End Cron API ------------------------
-
-//----------------------- Start Correction VIP Income API ------------------------
-
-async function vip1_wallet_correction(req, res) {
+async function check_request_callback_payment(req, res) {
   try {
-    let investorId = req.body.investorId;
-    cf();
-    async function cf() {
-      let total_withdraw = 0;
-      const it = await Registration.findOne({
-        investorId: investorId,
-      }).exec();
-      await Registration.updateOne({
-        investorId: investorId,
-      }, {
-        $set: {
-          withdraw_vip_income: 0,
-        },
-      }).exec();
-      if (it.vip1) {
-        let total_withdraw_vip1 = 0;
-        let tot_vip1_amt = Number(it.vip1_wallet) + Number(it.vip1_income);
-        let data = await Withdrawlhistory.find({
-          investorId: investorId,
-          withdrawal_type: "VIP 1 WITHDRAWAL",
-        }).exec();
-        if (data) {
-          let a = data.map(async (loop) => {
-            total_withdraw_vip1 =
-              total_withdraw_vip1 + Number(loop.total_amount);
-            total_withdraw = total_withdraw + Number(loop.total_amount);
-          });
-          Promise.all(a);
-          await Registration.updateOne({
-            investorId: investorId,
-          }, {
-            $set: {
-              withdraw_vip_income: Number(total_withdraw) * 1e6,
-            },
-          }).exec();
-          if (Number(total_withdraw_vip1 * 1e6) + tot_vip1_amt != 4000 * 1e6) {
-            await Registration.updateOne({
-              investorId: investorId,
-            }, {
-              $set: {
-                vip1_income: 4000 * 1e6 - Number(total_withdraw_vip1 * 1e6),
-                vip1_wallet: 0,
-              },
-            }).exec();
+    const result = await Withdrawlhistory.findOne({
+        payout_status: 3,
+      })
+      .exec();
+    if (result) {
+      let maxcount = result.count;
+      let tx_id = result.transaction_id;
+      if (maxcount > 4) {
+        Withdrawlhistory.updateMany({
+          transaction_id: tx_id
+        }, {
+          $set: {
+            payout_status: 0,
           }
+        }).exec();
+      } else {
+        function checkwithdraw(tx_id) {
+          return new Promise((resolve, reject) => {
+            fetch(
+                `https://shastapi.tronscan.org/api/transaction-info?hash=${tx_id}`
+              )
+              .then((res) => resolve(res.json()))
+              .catch((e) => {
+                reject(e);
+                console.log(e);
+              });
+          });
         }
-      }
-      if (it.vip2) {
-        let total_withdraw_vip2 = 0;
-        let tot_vip2_amt = Number(it.vip2_wallet) + Number(it.vip2_income);
-        let data = await Withdrawlhistory.find({
-          investorId: investorId,
-          withdrawal_type: "VIP 2 WITHDRAWAL",
-        }).exec();
-        if (data) {
-          let a = data.map(async (loop) => {
-            total_withdraw_vip2 =
-              total_withdraw_vip2 + Number(loop.total_amount);
-            total_withdraw = total_withdraw + Number(loop.total_amount);
-          });
-          Promise.all(a);
-          await Registration.updateOne({
-            investorId: investorId,
-          }, {
-            $set: {
-              withdraw_vip_income: Number(total_withdraw * 1e6),
-            },
-          }).exec();
-          if (Number(total_withdraw_vip2 * 1e6) + tot_vip2_amt != 12500 * 1e6) {
-            await Registration.updateOne({
-              investorId: investorId,
+        checkres = await checkwithdraw(tx_id);
+        console.log("BLOCKCHAIN::", checkres)
+        if ((checkres && checkres.block)) {
+          if (
+            checkres &&
+            checkres.hash == tx_id &&
+            checkres.contractRet &&
+            checkres.contractRet == "SUCCESS"
+          ) {
+            Withdrawlhistory.updateMany({
+              transaction_id: tx_id
             }, {
               $set: {
-                vip2_income: 12500 * 1e6 - Number(total_withdraw_vip2 * 1e6),
-                vip2_wallet: 0,
-              },
+                payout_status: 1,
+                count: maxcount + 1,
+                block_timestamp: checkres.timestamp
+              }
             }).exec();
-          }
-        }
-      }
-      if (it.vip3) {
-        let total_withdraw_vip3 = 0;
-        let tot_vip3_amt = Number(it.vip3_wallet) + Number(it.vip3_income);
-        let data = await Withdrawlhistory.find({
-          investorId: investorId,
-          withdrawal_type: "VIP 3 WITHDRAWAL",
-        }).exec();
-        if (data) {
-          let a = data.map(async (loop) => {
-            total_withdraw_vip3 =
-              total_withdraw_vip3 + Number(loop.total_amount);
-            total_withdraw = total_withdraw + Number(loop.total_amount);
-          });
-          Promise.all(a);
-          await Registration.updateOne({
-            investorId: investorId,
-          }, {
-            $set: {
-              withdraw_vip_income: Number(total_withdraw * 1e6),
-            },
-          }).exec();
-          if (Number(total_withdraw_vip3 * 1e6) + tot_vip3_amt != 30000 * 1e6) {
-            await Registration.updateOne({
-              investorId: investorId,
+          } else {
+            Withdrawlhistory.updateMany({
+              transaction_id: tx_id
             }, {
               $set: {
-                vip3_income: 30000 * 1e6 - Number(total_withdraw_vip3 * 1e6),
-                vip3_wallet: 0,
-              },
+                count: maxcount + 1,
+              }
             }).exec();
           }
+        } else {
+          console.log("TX Id Failed from Blockchain!", tx_id)
         }
       }
     }
   } catch (error) {
-    console.log("Error in Withdrawal ", error.message);
+    console.log(" error in cron_reinvest_income ", error.message);
   }
 }
-async function get_upline_downline_incomes(req, res) {
-  try {
-    for (let i = 1; i < 1388; i++) {
-    const investorId = 1386;
-    const ddd = await Transaction.aggregate([{
-        $match: {
-          investorId: investorId,
-          income_type: {
-            $in: [
-              "SPONSORING INCOME",
-              "COMMUNITY LEVELUP INCOME",
-              "VIP 1 SPONSOR INCOME",
-              "VIP 2 SPONSOR INCOME",
-              "VIP 3 SPONSOR INCOME",
-            ],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          sum: {
-            $sum: "$total_income",
-          },
-        },
-      },
-    ]);
-    const sss = await Withdrawlhistory.aggregate([{
-        $match: {
-          investorId: investorId,
-          withdrawal_type: "INCOME WITHDRAWAL",
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          sum: {
-            $sum: "$total_amount",
-          },
-        },
-      },
-    ]);
-    let resu = await Registration.findOne({
-        investorId: investorId,
-      },
-      "wallet_amount"
-    );
-    console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0).toFixed(2), " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
-    }
-  } catch (error) {
-    console.log("Error in get_upline_downline_incomes Record!", error.message);
-  }
-}
-async function get_upline_downline_incomess(req, res) {
-  try {
-    for (let i = 1; i < 1388; i++) {
-      const investorId = i;
-      const ddd = await Transaction.aggregate([{
-          $match: {
-            investorId: investorId,
-            income_type: {
-              $in: [
-                "SPONSORING INCOME",
-                "COMMUNITY LEVELUP INCOME",
-                "VIP 1 SPONSOR INCOME",
-                "VIP 2 SPONSOR INCOME",
-                "VIP 3 SPONSOR INCOME",
-              ],
-            },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            sum: {
-              $sum: "$total_income",
-            },
-          },
-        },
-      ]);
-      const sss = await Withdrawlhistory.aggregate([{
-          $match: {
-            investorId: investorId,
-            withdrawal_type: "INCOME WITHDRAWAL",
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            sum: {
-              $sum: "$total_amount",
-            },
-          },
-        },
-      ]);
-      // let resu = await Registration.findOne({
-      //     investorId: investorId,
-      //   },
-      //   "wallet_amount"
-      // );
-      let xx = Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0);
-      await Registration.updateOne({
-        investorId: investorId,
-      }, {
-        $set: {
-          wallet_amount: xx,
-        }
-      });
-      console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0).toFixed(2), " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
-
-    }
-
-  } catch (error) {
-    console.log("Error in get_upline_downline_incomes Record!", error.message);
-  }
-}
-get_upline_downline_incomes();
 module.exports = {
   calculate_leveldown_income_from_deposit,
   calculate_levelup_income_from_deposit,
@@ -2670,7 +2494,7 @@ module.exports = {
   vip2_income_withdrawal_request,
   vip3_income_withdrawal_request,
   get_vip_sponsor_level_incomes,
-  // vip_income_withdrawal_request,
+  check_request_callback_payment,
   get_community_level_incomes,
   get_upline_downline_income,
   send_all_vip_club_income,
