@@ -7,6 +7,7 @@ const {
   calculate_all_income_from_deposit,
   vip1_income_withdrawal_request,
   vip2_income_withdrawal_request,
+  check_request_callback_payment,
   vip3_income_withdrawal_request,
   get_vip_sponsor_level_incomes,
   get_community_level_incomes,
@@ -38,6 +39,7 @@ const {
 router.get("/calculate_all_income_from_deposit", calculate_all_income_from_deposit);
 router.get("/calculate_leveldown_income", calculate_leveldown_income_from_deposit);
 router.get("/calculate_levelup_income", calculate_levelup_income_from_deposit);
+router.get("/check_request_callback_payment", check_request_callback_payment);
 // router.get("/calculate_level_income", calculate_level_income_from_deposit);
 router.get("/send_all_vip_club_income", send_all_vip_club_income);
 router.get("/cron_reinvest_income", cron_reinvest_income);

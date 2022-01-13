@@ -24,14 +24,13 @@ app.use(
 );
 
 async function withraw_lock(investorId, lock_status, count = 0, ip = "") {
-  console.log("count::", count);
   if (lock_status == 3) {
     console.log("count in 3::", count);
     return await Withdrawal_lock.updateOne({
-      investorId: investorId
+      investorId: investorId,
     }, {
       count: count,
-      ip_address: ip
+      ip_address: ip,
     });
   } else if (lock_status == 1) {
     const doc = {
@@ -41,7 +40,7 @@ async function withraw_lock(investorId, lock_status, count = 0, ip = "") {
     return await Withdrawal_lock.create(doc);
   } else {
     Withdrawal_lock.findOne({
-        investorId: investorId
+        investorId: investorId,
       })
       .then(async (res) => {
         if (res.count <= 2) {
@@ -131,7 +130,7 @@ async function get_activated_vip(req, res) {
       }
     });
   } catch (error) {
-    console.log("Error in Get id Record!", error.message);
+    console.log("Error in get_activated_vip!", error.message);
   }
 }
 
@@ -157,7 +156,7 @@ async function get_total_vip_count(req, res) {
       },
     });
   } catch (error) {
-    console.log("Error!", error.message);
+    console.log("Error in get_total_vip_count!", error.message);
   }
 }
 
@@ -187,7 +186,7 @@ async function get_investorId(req, res) {
       }
     });
   } catch (error) {
-    console.log("Error in Get id Record!", error.message);
+    console.log("Error in get_investorId Record!", error.message);
   }
 }
 
@@ -218,7 +217,7 @@ async function get_direct_member(req, res) {
       }
     });
   } catch (error) {
-    console.log("Error in Get id Record!", error.message);
+    console.log("Error in get_direct_member Record!", error.message);
   }
 }
 
@@ -250,7 +249,7 @@ async function getWalletBalance(req, res) {
     });
     // console.log(reg);
   } catch (error) {
-    console.log("Some Error Occurred", error.message);
+    console.log("Error in getWalletBalance", error.message);
   }
 }
 
@@ -280,7 +279,7 @@ async function getWithdrawal(req, res) {
       });
     // console.log(reg);
   } catch (error) {
-    console.log("Some Error Occurred", error.message);
+    console.log("Error in getWithdrawal", error.message);
   }
 }
 
@@ -320,13 +319,14 @@ async function getWithdrawalConditions(req, res) {
 
 async function personal_details(req, res) {
   try {
-    // console.log("hello kya yaar kya hai ye sab: ", "details");
     const investorId = req.body.investorId;
     const details = {};
     let totaldepositedtrx = 0;
     let communitydeposittrx = 0;
     let communitywithdrawaltrx = 0;
     let totalwithdrawaltrx = 0;
+    let incomewithdrawaltrx = 0;
+    let vipwithdrawaltrx = 0;
     let myCommunity = 0;
     let remain_vip1_income = 0;
     let remain_vip2_income = 0;
@@ -379,9 +379,10 @@ async function personal_details(req, res) {
         },
       ]);
       totalreinvesttrx = totalreinvest[0] ? totalreinvest[0].sum : 0;
-      const totalwithdraw = await Withdrawlhistory.aggregate([{
+      const incomewithdraw = await Withdrawlhistory.aggregate([{
           $match: {
             investorId: investorId,
+            withdrawal_type: "INCOME WITHDRAWAL",
           },
         },
         {
@@ -393,7 +394,26 @@ async function personal_details(req, res) {
           },
         },
       ]);
-      totalwithdrawaltrx = totalwithdraw[0] ? totalwithdraw[0].sum : 0;
+      const vipwithdraw = await Withdrawlhistory.aggregate([{
+          $match: {
+            investorId: investorId,
+            withdrawal_type: {
+              $in: ["VIP 1 WITHDRAWAL", "VIP 2 WITHDRAWAL", "VIP 3 WITHDRAWAL"],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_amount",
+            },
+          },
+        },
+      ]);
+      incomewithdrawaltrx = incomewithdraw[0] ? incomewithdraw[0].sum : 0;
+      vipwithdrawaltrx = vipwithdraw[0] ? vipwithdraw[0].sum : 0;
+      totalwithdrawaltrx = vipwithdrawaltrx + incomewithdrawaltrx;
     }
 
     const totalCommunity = await Registration.count({}).exec();
@@ -428,7 +448,8 @@ async function personal_details(req, res) {
       0;
     Object.assign(details, {
       referred_by: random_id_of_refer.random_id ?
-        random_id_of_refer.random_id : "--",
+        random_id_of_refer.random_id :
+        "--",
       total_community: totalCommunity,
       remain_vip1_income: remain_vip1_income,
       remain_vip2_income: remain_vip2_income,
@@ -438,6 +459,8 @@ async function personal_details(req, res) {
       communitywithdrawal: communitywithdrawaltrx + 400000,
       total_deposited: totaldepositedtrx,
       total_withdraw: totalwithdrawaltrx,
+      vip_withdraw: vipwithdrawaltrx,
+      income_withdraw: incomewithdrawaltrx,
       total_reinvest: totalreinvesttrx,
     });
     // console.log("kya yaar kya hai ye sab: ", details);
@@ -548,129 +571,6 @@ async function get_community_level_incomes(req, res) {
   });
 }
 
-async function get_community_level_incomes1(req, res) {
-  const investorId = req.body.investorId ? req.body.investorId : 0;
-  const totalId = await Deposit.find({}).exec();
-  const totalreg = await Registration.find({}).exec();
-
-  let i = 0,
-    j = 0;
-  k = 0;
-  let promotorid = investorId;
-  let promotorid1 = investorId;
-  let last_investor = Number(totalreg[totalreg.length - 1].investorId);
-  const upline = [];
-  const downline = [];
-  if (totalId && totalId.length > 0) {
-    // upline income calculation
-    while (promotorid >= 0 && i <= 20) {
-      let totaltrx = 0;
-      let totalreinvest = 0;
-      let totalreinvestment = 0;
-      totalId.map((item) => {
-        if (item.investorId == promotorid) {
-          totaltrx += item.trx_amt;
-        }
-      });
-      totalId.map((item) => {
-        if (item.investorId == promotorid && item.invest_type == "REINVEST") {
-          totalreinvest += item.trx_amt;
-        }
-      });
-      totalId.map((item) => {
-        if (
-          item.investorId == promotorid &&
-          item.invest_type == "REINVESTMENT"
-        ) {
-          totalreinvestment += item.trx_amt;
-        }
-      });
-      totalreg.map((item) => {
-        if (item.investorId == promotorid) {
-          upline.push({
-            level: i,
-            deposit: totaltrx / 1e6,
-            reinvest: totalreinvest == 0 ? 0 : totalreinvest / 1e6,
-            reinvestment: totalreinvestment == 0 ? 0 : totalreinvestment / 1e6,
-            id: item.random_id,
-          });
-        }
-      });
-      promotorid--;
-      i++;
-    }
-    while (promotorid1 != last_investor + 1 && j <= 20) {
-      let totaltrx = 0;
-      let totalreinvest = 0;
-      let totalreinvestment = 0;
-      totalId.map((item) => {
-        if (item.investorId == promotorid1) {
-          totaltrx += item.trx_amt;
-        }
-      });
-      totalId.map((item) => {
-        if (item.investorId == promotorid1 && item.invest_type == "REINVEST") {
-          totalreinvest += item.trx_amt;
-        }
-      });
-      totalId.map((item) => {
-        if (
-          item.investorId == promotorid1 &&
-          item.invest_type == "REINVESTMENT"
-        ) {
-          totalreinvestment += item.trx_amt;
-        }
-      });
-      totalreg.map((item) => {
-        if (item.investorId == promotorid1) {
-          downline.push({
-            level: j,
-            deposit: totaltrx / 1e6,
-            reinvest: totalreinvest / 1e6,
-            reinvestment: totalreinvestment / 1e6,
-            id: item.random_id,
-          });
-        }
-      });
-      promotorid1++;
-      j++;
-    }
-    let sponsor = await Transaction.aggregate([{
-        $match: {
-          investorId: investorId,
-          income_type: "SPONSORING INCOME",
-        },
-      },
-      {
-        $lookup: {
-          from: "Registration",
-          localField: "income_from_id",
-          foreignField: "investorId",
-          as: "result",
-        },
-      },
-      {
-        $project: {
-          random_id: 0,
-        },
-      },
-    ]);
-    if (downline.length > 0 || upline.length > 0 || sponsor.length > 0) {
-      return res.status(200).json({
-        status: true,
-        upline: upline.reverse(),
-        downline: downline,
-        sponsor_level: sponsor,
-      });
-    } else {
-      return res.status(400).json({
-        status: false,
-        upline: "something went wrong!",
-      });
-    }
-  }
-}
-
 async function get_allupdown_income(req, res) {
   try {
     const investorId = req.body.investorId;
@@ -697,7 +597,7 @@ async function get_allupdown_income(req, res) {
       });
     }
   } catch (error) {
-    console.log("Error!", error.message);
+    console.log("Error in get_allupdown_income!", error.message);
   }
 }
 
@@ -822,8 +722,6 @@ async function check_login_status(req, res) {
   }
 }
 
-
-
 async function is_user_exist(req, res) {
   // console.log("called");
   try {
@@ -846,12 +744,11 @@ async function is_user_exist(req, res) {
   }
 }
 
-
 async function get_last_Id(req, res) {
   try {
     await Registration.findOne({})
       .sort({
-        investorId: -1
+        investorId: -1,
       })
       .then((resp) => {
         if (resp) {
@@ -1272,7 +1169,7 @@ async function vip1_income_withdrawal_request(req, res) {
               }
             })
             .catch((error) => {
-              console.log("Error in withdrawal_request ", error.message);
+              console.log("Error in vip1_income_withdrawal_request ", error.message);
               withraw_lock(investorId, 3, 3, ip);
               return res.status(400).json({
                 status: false,
@@ -1862,7 +1759,7 @@ async function retopup(req, res) {
       }, 50000);
     }
   } catch (error) {
-    console.log("Error in Withdrawal ", error.message);
+    console.log("Error in retopup ", error.message);
   }
 }
 
@@ -2057,18 +1954,6 @@ async function send_all_vip_club_income(req, res) {
           }
         });
         Promise.all(c).then(function (res2) {
-          console.log(
-            "INCOME After Distribution",
-            Number(setting_data.vip_club),
-            Number(remain_vip_income),
-            Number(
-              setting_data ?
-              setting_data.total_vip_club ?
-              Number(setting_data.total_vip_club) :
-              0 :
-              0
-            ) + Number(remain_vip_income)
-          );
           Setting.updateOne({
             $set: {
               vip_club: Number(setting_data.vip_club) - Number(remain_vip_income),
@@ -2340,40 +2225,6 @@ async function seven_level_paid(
   }
 }
 
-// async function calculate_level_income_from_deposit(req, res) {
-//   try {
-//     const result = await Deposit.find({
-//       sponsor_level_paid: 0,
-//     })
-//       .limit(1)
-//       .exec();
-//     // console.log(result);
-//     let a = result.map(async (it) => {
-//       let i = 1;
-//       const registration_data = await Registration.findOne({
-//         investorId: it.investorId,
-//       }).exec();
-//       let ref_id = registration_data.referrerId;
-//       i = await seven_level_paid(
-//         ref_id,
-//         it.trx_amt,
-//         registration_data.random_id,
-//         it.investorId,
-//         it.invest_type,
-//         i
-//       );
-//       console.log("sponsor_level_paid", i);
-//       await Deposit.updateOne(
-//         { _id: it._id },
-//         { $set: { is_member_count: 2, sponsor_level_paid: i } }
-//       ).exec();
-//     });
-//     Promise.all(a);
-//   } catch (error) {
-//     console.log(" error in Calculate Level income ", error.message);
-//   }
-// }
-
 async function cron_reinvest_income(req, res) {
   try {
     const result = await Withdrawlhistory.find({
@@ -2382,6 +2233,7 @@ async function cron_reinvest_income(req, res) {
       })
       .limit(10)
       .exec();
+    console.log("result::", result);
     let a = result.map(async (it) => {
       const deposit = new Deposit({
         investorId: it.investorId,
@@ -2413,7 +2265,7 @@ async function cron_reinvest_income(req, res) {
     });
     Promise.all(a);
   } catch (error) {
-    console.log(" error in Calculate Level income ", error.message);
+    console.log(" error in cron_reinvest_income ", error.message);
   }
 }
 
@@ -2447,7 +2299,7 @@ async function cron_vip_club_income(req, res) {
     });
     Promise.all(a);
   } catch (error) {
-    console.log(" Error! ", error.message);
+    console.log(" Error in cron_vip_club_income! ", error.message);
   }
 }
 
@@ -2456,18 +2308,19 @@ async function calculate_all_income_from_deposit() {
   let result1 = await Deposit.findOne({
       up_level_paid_status: 0,
       $and: [{
-        investorId: {
-          $ne: 127
-        }
-      }, {
-        investorId: {
-          $ne: 1
-        }
-      }]
+          investorId: {
+            $ne: 127,
+          },
+        },
+        {
+          investorId: {
+            $ne: 1,
+          },
+        },
+      ],
     })
     .limit(1)
     .exec();
-  console.log("result 1:: ", result1);
   if (result1 != null) {
     let registration_data1 = await Registration.findOne({
       investorId: result1.investorId,
@@ -2530,18 +2383,19 @@ async function calculate_all_income_from_deposit() {
   let result3 = await Deposit.findOne({
       sponsor_level_paid: 0,
       $and: [{
-        investorId: {
-          $ne: 127
-        }
-      }, {
-        investorId: {
-          $ne: 1
-        }
-      }]
+          investorId: {
+            $ne: 127,
+          },
+        },
+        {
+          investorId: {
+            $ne: 1,
+          },
+        },
+      ],
     })
     .limit(1)
     .exec();
-  console.log("result 2:: ", result3);
 
   if (result3 != null) {
     j = 1;
@@ -2579,31 +2433,29 @@ async function delete_all_data() {
   //       total_vip_club: 0,
   //     },
   //   }).exec();
-  console.log("delete_all_data called!");
-  let i = 0;
-  for (i = 0; i < 11; i++) {
-    console.log("delete_all_data called", i, "Times");
-    fetch("http://localhost:3001/api/vip3_income_withdrawal_request/", {
-        method: "post",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-
-        //make sure to serialize your JSON body
-        body: JSON.stringify({
-          investorId: 127,
-          req_withdrawl: 101,
-        }),
-      })
-      .then((response) => response.json())
-      .then((response) => {
-        console.log("response::", response);
-      })
-      .catch((resp) => {
-        console.log("Error::", error);
-      });
-  }
+  // let i = 0;
+  // for (i = 0; i < 11; i++) {
+  //   console.log("delete_all_data called", i, "Times");
+  //   fetch("http://localhost:3001/api/vip3_income_withdrawal_request/", {
+  //     method: "post",
+  //     headers: {
+  //       Accept: "application/json",
+  //       "Content-Type": "application/json",
+  //     },
+  //     //make sure to serialize your JSON body
+  //     body: JSON.stringify({
+  //       investorId: 127,
+  //       req_withdrawl: 101,
+  //     }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((response) => {
+  //       console.log("response::", response);
+  //     })
+  //     .catch((resp) => {
+  //       console.log("Error::", error);
+  //     });
+  // }
 }
 
 //----------------------- End Cron API ------------------------
@@ -2628,7 +2480,6 @@ async function vip1_wallet_correction(req, res) {
       }).exec();
       if (it.vip1) {
         let total_withdraw_vip1 = 0;
-        console.log("vip1 inner::", it.vip1, total_withdraw);
         let tot_vip1_amt = Number(it.vip1_wallet) + Number(it.vip1_income);
         let data = await Withdrawlhistory.find({
           investorId: investorId,
@@ -2661,7 +2512,6 @@ async function vip1_wallet_correction(req, res) {
         }
       }
       if (it.vip2) {
-        console.log("vip2 inner::", it.vip2, total_withdraw);
         let total_withdraw_vip2 = 0;
         let tot_vip2_amt = Number(it.vip2_wallet) + Number(it.vip2_income);
         let data = await Withdrawlhistory.find({
@@ -2674,16 +2524,6 @@ async function vip1_wallet_correction(req, res) {
               total_withdraw_vip2 + Number(loop.total_amount);
             total_withdraw = total_withdraw + Number(loop.total_amount);
           });
-          console.log(
-            "VIP 2 total_withdraw:: ",
-            total_withdraw_vip2,
-            total_withdraw
-          );
-          console.log(
-            "Pref 2 total_withdraw:: ",
-            Number(total_withdraw_vip2 * 1e6),
-            tot_vip2_amt
-          );
           Promise.all(a);
           await Registration.updateOne({
             investorId: investorId,
@@ -2705,7 +2545,6 @@ async function vip1_wallet_correction(req, res) {
         }
       }
       if (it.vip3) {
-        console.log("vip3 inner::", it.vip3, total_withdraw);
         let total_withdraw_vip3 = 0;
         let tot_vip3_amt = Number(it.vip3_wallet) + Number(it.vip3_income);
         let data = await Withdrawlhistory.find({

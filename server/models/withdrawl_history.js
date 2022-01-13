@@ -11,8 +11,9 @@ const withdrawlhistorySchema = new mongoose.Schema({
      ip_address : { type : String },
      withdrawal_type : { type : String },
      block_timestamp : { type : Number },
-     transaction_id : { type : String},
+     transaction_id : { type : String },
      payout_status : { type : Number, default : 0 }, 
+     count : { type : Number, default : 0 },
      reinvestment_status : { type : Number, default : 0 }   
 }, { timestamps: true});
 
