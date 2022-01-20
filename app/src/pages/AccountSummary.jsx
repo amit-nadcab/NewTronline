@@ -44,25 +44,25 @@ export default function AccountSummary() {
       },
     },
 
-    {
-      name: "Transaction Id",
-      selector: (row) => (
-        <a
-          href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
-          target="_blank"
-        >
-          {row.transaction_id}
-        </a>
-      ),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
+    // {
+    //   name: "Transaction Id",
+    //   selector: (row) => (
+    //     <a
+    //       href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
+    //       target="_blank"
+    //     >
+    //       {row.transaction_id}
+    //     </a>
+    //   ),
+    //   sortable: true,
+    //   style: {
+    //     backgroundColor: "transparent",
+    //     color: "black",
+    //   },
+    // },
     {
       name: "Reward",
-      selector: (row) => row.total_income,
+      selector: (row) => row.total_income + " TRX",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -83,12 +83,18 @@ export default function AccountSummary() {
     {
       name: "Transaction Id",
       selector: (row) => (
-        <a
-          href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
-          target="_blank"
-        >
-          {row.transaction_id}
-        </a>
+        <div>
+        {row.transaction_id ? (
+          <a
+            href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
+            target="_blank"
+          >
+            {row.transaction_id}
+          </a>
+        ) : (
+          <span class="badge bg-warning text-dark p-2 px-4" style={{fontSize:"12px"}}>Pending</span>
+        )}
+      </div>
       ),
       sortable: true,
       style: {
@@ -115,8 +121,17 @@ export default function AccountSummary() {
       },
     },
     {
-      name: "Date",
-      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      name: "Requested Time",
+      selector: (row) => new Date(row.createdAt).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Approved At",
+      selector: (row) => row.block_timestamp?new Date(row.block_timestamp).toLocaleString():"---",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -166,12 +181,18 @@ export default function AccountSummary() {
     {
       name: "Transaction Id",
       selector: (row) => (
-        <a
-          href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
-          target="_blank"
-        >
-          {row.transaction_id}
-        </a>
+        <div>
+          {row.transaction_id ? (
+            <a
+              href={`https://tronscan.io/#/transaction/${row.transaction_id}`}
+              target="_blank"
+            >
+              {row.transaction_id}
+            </a>
+          ) : (
+            <span class="badge bg-warning text-dark p-2 px-4" style={{fontSize:"12px"}}>Pending</span>
+          )}
+        </div>
       ),
       sortable: true,
       style: {
@@ -206,9 +227,19 @@ export default function AccountSummary() {
         color: "rgba(63, 195, 128, 0.9)",
       },
     },
+    
     {
-      name: "Date",
-      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      name: "Requested Time",
+      selector: (row) => new Date(row.createdAt).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Approved At",
+      selector: (row) =>row.transaction_id? row.block_timestamp?new Date(row.block_timestamp).toLocaleString():"---":"---",
       sortable: true,
       style: {
         backgroundColor: "transparent",

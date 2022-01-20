@@ -792,6 +792,8 @@ async function withdrawal_request(req, res) {
             });
           } else {
             withraw_lock(investorId, 1, 0, ip)
+
+            
               .then(async (data) => {
                 if (data) {
                   const total_investment = Number(result.total_investment) / 1e6;

@@ -101,6 +101,15 @@ export default function Home() {
         color: "black",
       },
     },
+    {
+      name: "Timestamp",
+      selector: (row) => new Date(row.income_date).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
   ];
 
   const customStyles = {
