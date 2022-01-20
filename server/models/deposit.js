@@ -10,7 +10,7 @@ const deposit = new mongoose.Schema({
     _type: { type: Number },
     block_timestamp: { type: String },
     waddress: { type: String },
-    transaction_id: { type: String, unique : true},
+    transaction_id: { type: String},
     sponsor_level_paid_status: { type: Number,default : 0 },
     up_level_paid_status: { type: Number, default :0},
     trx_amt: { type: Number },

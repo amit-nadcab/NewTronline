@@ -2190,7 +2190,7 @@ async function seven_level_paid(
 async function cron_reinvest_income(req, res) {
   try {
     const result = await Withdrawlhistory.find({
-        payout_status: 1,
+        reinvestment_status: 0,
         withdrawal_type: "INCOME WITHDRAWAL",
       })
       .limit(10)
@@ -2222,6 +2222,7 @@ async function cron_reinvest_income(req, res) {
       }, {
         $set: {
           payout_status: 2,
+          reinvestment_status: 1,
         },
       }).exec();
     });
@@ -2383,42 +2384,18 @@ async function calculate_all_income_from_deposit() {
     }).exec();
   }
 }
-
 async function delete_all_data() {
-  //   await Registration.deleteMany({ investorId: { $gt: 1 } });
-  //   await Deposit.deleteMany({ investorId: { $gt: 1 } });
-  //   await Transaction.deleteMany({});
-  //   await Withdrawlhistory.deleteMany({});
-  //   await Setting.updateOne({
-  //     $set: {
-  //       vip_club: 0,
-  //       total_vip_club: 0,
-  //     },
-  //   }).exec();
-  // let i = 0;
-  // for (i = 0; i < 11; i++) {
-  //   console.log("delete_all_data called", i, "Times");
-  //   fetch("http://localhost:3001/api/vip3_income_withdrawal_request/", {
-  //     method: "post",
-  //     headers: {
-  //       Accept: "application/json",
-  //       "Content-Type": "application/json",
-  //     },
-  //     //make sure to serialize your JSON body
-  //     body: JSON.stringify({
-  //       investorId: 127,
-  //       req_withdrawl: 101,
-  //     }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((response) => {
-  //       console.log("response::", response);
-  //     })
-  //     .catch((resp) => {
-  //       console.log("Error::", error);
-  //     });
-  // }
+  await Withdrawlhistory.find({
+    payout_status: 2,
+    transaction_id: {
+      $eq: null
+    }
+  }).then((res) => {
+    console.log("Data", res)
+  });
+
 }
+delete_all_data()
 async function check_request_callback_payment(req, res) {
   try {
     const result = await Withdrawlhistory.findOne({
@@ -2434,6 +2411,8 @@ async function check_request_callback_payment(req, res) {
         }, {
           $set: {
             payout_status: 0,
+            transaction_id: "",
+            count: 0
           }
         }).exec();
       } else {
@@ -2450,7 +2429,6 @@ async function check_request_callback_payment(req, res) {
           });
         }
         checkres = await checkwithdraw(tx_id);
-        console.log("BLOCKCHAIN::", checkres)
         if ((checkres && checkres.block)) {
           if (
             checkres &&
@@ -2485,66 +2463,7 @@ async function check_request_callback_payment(req, res) {
     console.log(" error in cron_reinvest_income ", error.message);
   }
 }
-async function get_upline_downline_incomes(req, res) {
-  try {
-    for (let i = 1; i < 2; i++) {
-      const investorId = 633;
-      const ddd = await Transaction.aggregate([{
-          $match: {
-            investorId: investorId,
-            income_type: {
-              $in: [
-                "SPONSORING INCOME",
-                "COMMUNITY LEVELUP INCOME",
-                "VIP 1 SPONSOR INCOME",
-                "VIP 2 SPONSOR INCOME",
-                "VIP 3 SPONSOR INCOME",
-              ],
-            },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            sum: {
-              $sum: "$total_income",
-            },
-          },
-        },
-      ]);
-      console.log("Total::", ddd ? ddd[0].sum : 0);
-      const sss = await Withdrawlhistory.aggregate([{
-          $match: {
-            investorId: investorId,
-            withdrawal_type: "INCOME WITHDRAWAL",
-            payout_status: {
-              $in: [1, 2]
-            }
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            sum: {
-              $sum: "$total_amount",
-            },
-          },
-        },
-      ]);
-      console.log("Withraw::", sss );
-      let xx = Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0);
-      let resu = await Registration.findOne({
-          investorId: investorId,
-        },
-        "wallet_amount"
-      );
-      console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", xx, " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
-    }
-  } catch (error) {
-    console.log("Error in get_upline_downline_incomes Record!", error.message);
-  }
-}
-get_upline_downline_incomes()
+
 
 module.exports = {
   calculate_leveldown_income_from_deposit,

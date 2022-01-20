@@ -148,3 +148,64 @@ async function updateWallet(req, res) {
     console.log("Error in get_upline_downline_incomes Record!", error.message);
   }
 }
+
+
+async function get_upline_downline_incomes(req, res) {
+  try {
+    for (let i = 1; i < 2; i++) {
+      const investorId = 633;
+      const ddd = await Transaction.aggregate([{
+          $match: {
+            investorId: investorId,
+            income_type: {
+              $in: [
+                "SPONSORING INCOME",
+                "COMMUNITY LEVELUP INCOME",
+                "VIP 1 SPONSOR INCOME",
+                "VIP 2 SPONSOR INCOME",
+                "VIP 3 SPONSOR INCOME",
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_income",
+            },
+          },
+        },
+      ]);
+      console.log("Total::", ddd ? ddd[0].sum : 0);
+      const sss = await Withdrawlhistory.aggregate([{
+          $match: {
+            investorId: investorId,
+            withdrawal_type: "INCOME WITHDRAWAL",
+            payout_status: {
+              $in: [1, 2]
+            }
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sum: {
+              $sum: "$total_amount",
+            },
+          },
+        },
+      ]);
+      console.log("Withraw::", sss );
+      let xx = Number(ddd[0].sum ? ddd[0].sum : 0 - sss[0].sum ? sss[0].sum : 0);
+      let resu = await Registration.findOne({
+          investorId: investorId,
+        },
+        "wallet_amount"
+      );
+      console.log("INVESTOR ID::", investorId, " | ACTUAL WALLET AMOUNT::", xx, " | WALLET AMOUNT::", Number(resu.wallet_amount).toFixed(2))
+    }
+  } catch (error) {
+    console.log("Error in get_upline_downline_incomes Record!", error.message);
+  }
+}
