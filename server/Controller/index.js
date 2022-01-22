@@ -50,6 +50,9 @@ async function generateEventQuery(result) {
                 tronWeb.address.fromHex(value) :
                 value :
                 value;
+              if (index[k] == "waddress") {
+                sobj += `"waddress" : "${value}",`;
+              }
               if (index[k] == "trx_amt") {
                 trx_amt = value;
               }
@@ -77,6 +80,7 @@ async function generateEventQuery(result) {
           let block_number = result[i]["block_number"];
           let timestamp = parseInt(result[i]["block_timestamp"] / 1000);
           obj += `"block_timestamp": "${timestamp}",`;
+          console.log("OBGGGG", obj)
           obj += `"transaction_id" : "${transaction_id}",`;
           obj += `"block_number" : "${block_number}",`;
 
@@ -94,9 +98,12 @@ async function generateEventQuery(result) {
 
             let select_qry = `{${sobj}}`;
             let insert_qry = `{${obj}}`;
-            // console.log("select_qry", sobj);
-            await Registration.findOne(JSON.parse(select_qry)).then(
+            console.log("select_qry", sobj);
+            await Registration.findOne({
+              $or: [JSON.parse(select_qry)]
+            }).then(
               async (data) => {
+                console.log("dfjhdc", data);
                 if (!data) {
                   await Registration.create(JSON.parse(insert_qry));
                   let reg_data = await Registration.count({
@@ -251,7 +258,7 @@ async function generateEventQuery(result) {
 //         );
 //     })
 //     .catch((e) => {
-      // console.log(e);
+// console.log(e);
 //     });
 // };
 
@@ -279,7 +286,7 @@ exports.foreverExcute = async function foreverExcute(
     .then(async (result) => {
       // console.log(result)
       if (result.data) {
-        console.log(result.data);
+        // console.log(result.data);
         let res = await generateEventQuery(result.data);
       }
       if (result.meta.fingerprint ? true : false)

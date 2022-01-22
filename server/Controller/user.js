@@ -2397,7 +2397,6 @@ async function delete_all_data() {
   });
 
 }
-delete_all_data()
 async function check_request_callback_payment(req, res) {
   try {
     const result = await Withdrawlhistory.findOne({
