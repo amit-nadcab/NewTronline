@@ -2611,7 +2611,7 @@ module.exports = {
   delete_all_data,
   get_investorId,
   getWithdrawal,
-  is_user_exist,
+  is_user_exi
   get_randomId,
   get_last_Id,
   retopup,
