@@ -17,28 +17,11 @@ export default function Home() {
   const [contract, setContract] = useState({});
   const [pkg500, setpkg500] = useState(50);
   const [joinAmount, setjoinAmount] = useState(50);
-  const [spinvipw1, setspinvipw1] = useState("");
-  const [spinvipw2, setspinvipw2] = useState("");
-  const [spinvipw3, setspinvipw3] = useState("");
   const [ref_id, setref_id] = useState(false);
   const [ref_id1, setref_id1] = useState();
-  const [wtrxamt, setwtrxamt] = useState(0);
-  const [rinvest, setrinvest] = useState(0);
-  const [wamount, setwamount] = useState(0);
   const [spin, setspin] = useState("");
-  const [spin2, setspin2] = useState("");
-  const [vipdata, setvipdata] = useState("");
-  const [count, setcount] = useState("");
-  const [vipwithdraw_amt1, setvipwithdraw_amt1] = useState(0);
-  const [vipwithdraw_amt2, setvipwithdraw_amt2] = useState(0);
-  const [vipwithdraw_amt3, setvipwithdraw_amt3] = useState(0);
   const [vsi, setvsi] = useState(0);
   const [disable, setdisable] = useState(false);
-  const [btndis, setbtndis] = useState({
-    vip1: false,
-    vip2: false,
-    vip3: false,
-  });
 
   const sponsorcolumn = [
     {
@@ -100,59 +83,15 @@ export default function Home() {
       },
     },
   };
+
   const ref_addr = window.location.href;
   const reflink = useRef();
 
-  // useEffect(() => {
-  //   personalDetails();
-  //   // console.log("vcfvgbfviofuiofuifudifudifdufi fgbui li: ",state.investor_id);
-  //   if (state.isLoggedIn) {
-  //     walletIncome();
-  //     communityDetails();
-  //     getWithdrawConditions();
-  //     checkVIP();
-  //     levelIncome("SPONSORING INCOME");
-  //     levelIncome("COMMUNITY LEVELUP INCOME");
-  //     levelIncome("VIP SPONSOR INCOME");
-  //   } else {
-  //     checkVIP();
-  //     dispatch({ type: SPONSOR_INCOME, data: 0 });
-  //     dispatch({ type: UPLINE_INCOME, data: 0 });
-  //   }
-  //   // myDirects();
-  //   // getWithdrawals();
-  //   // myvipsponsorincome();
-  //   // levelIncome("COMMUNITY LEVELDOWN INCOME");
-  // }, [state.investor_id]);
-
-  // useEffect(() => {
-  //   if (!state.isLoggedIn) {
-  //     personalDetails();
-  //     checkVIP();
-  //     dispatch({ type: SPONSOR_INCOME, data: 0 });
-  //     dispatch({ type: UPLINE_INCOME, data: 0 });
-  //     dispatch({
-  //       type: COMMUNITY_DETAIL,
-  //       data: {
-  //         levelup: 0,
-  //         leveldown: 0,
-  //         sponsor_level: 0,
-  //       },
-  //     });
-  //     dispatch({ type: WALLET_INCOME, data: 0 });
-  //     dispatch({
-  //       type: SET_WITHDRAW_CONDITIONS,
-  //       data: { direct: 0, invest: 0 },
-  //     });
-  //     dispatch({ type: VIP_INCOME, data: 0 });
-  //     dispatch({
-  //       type: VIP_INCOME_WITHDRAWN,
-  //       data: 0,
-  //     });
-  //   }
-  // }, [state.isLoggedIn]);
-
-
+  useEffect(()=>{
+    console.log("Referrer Id",ref_addr);
+    let nnnnn =ref_addr.split("?ref_id=");
+    setref_id1(nnnnn[1]);
+  },[]);
   async function onRegistration() {
     setspin("spinner-border spinner-border-sm");
     // balance >= joinAmount
@@ -215,61 +154,7 @@ export default function Home() {
     }
   }
 
-  // function withdraw() {
-  //   if (Number(state.wallet_income) >= Number(wtrxamt)) {
-  //     if (wtrxamt > 0) {
-  //       if (wtrxamt >= 100) {
-  //         setspin("spinner-border spinner-border-sm");
-  //         getInvestorId(ref_id)
-  //           .then((res) => {
-  //             if (res.status) {
-  //               withdrawalRequest(
-  //                 wtrxamt,
-  //                 Number(res.data),
-  //                 state.wallet_address
-  //               )
-  //                 .then((res) => {
-  //                   if (res.status === "success") {
-  //                     setspin("");
-  //                     NotificationManager.success(res.message);
-  //                     setTimeout(() => {
-  //                       walletIncome();
-  //                       personalDetails();
-  //                       const url_address = window?.frames?.location?.href;
-  //                       // console.log("url address: ", url_address.split("?"), window);
-  //                       const url = url_address
-  //                         ? url_address.split("?")[1]
-  //                         : "";
-  //                       if (url && url.length > 21) {
-  //                         dispatch({ type: SET_ADDRESS, data: url });
-  //                       } else {
-  //                         dispatch(getBalance(state.wallet_address));
-  //                       }
-  //                     }, 500);
-  //                   } else {
-  //                     setspin("");
-  //                     NotificationManager.error(res.message);
-  //                   }
-  //                 })
-  //                 .catch((e) => {
-  //                   console.log(e);
-  //                 });
-  //             }
-  //           })
-  //           .catch((e) => {
-  //             console.log(e);
-  //           });
-  //       } else {
-  //         NotificationManager.error("Min 100 TRX can be withrawal!");
-  //       }
-  //     } else {
-  //       NotificationManager.error("Please Enter TRX Amount Greater Than 100!");
-  //     }
-  //   } else {
-  //     NotificationManager.error("Insufficient Balance !!");
-  //   }
-  // }
-
+  
   return (
     <>
       <div className="container text-center mt-4">
@@ -514,7 +399,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="mt-5">
+      {/* <div className="mt-5">
         <div className="container">
           <div className="row cus_row">
             <CardIdinfo
@@ -534,7 +419,7 @@ export default function Home() {
             />
           </div>
         </div>
-      </div>
+      </div> */}
 
       <section className="pb_50">
         <div className="container">
