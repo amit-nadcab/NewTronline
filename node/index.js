@@ -8,11 +8,11 @@ const mysql = require('mysql');
 app.use(express.json());
 app.use(cors());
 
-const web3 = new Web3("https://data-seed-prebsc-1-s1.binance.org:8545/");
+const web3 = new Web3("https://rpc01.bdltscan.io/");
 
-const dexABI = [{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"newPrice","type":"uint256"}],"name":"PriceChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"address","name":"referrer","type":"address"},{"indexed":true,"internalType":"uint256","name":"userId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"referrerId","type":"uint256"}],"name":"Registration","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint8","name":"package","type":"uint8"}],"name":"Upgrade","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"address","name":"receiver","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"level","type":"uint8"},{"indexed":false,"internalType":"string","name":"_for","type":"string"}],"name":"UserIncome","type":"event"},{"inputs":[{"internalType":"uint256","name":"bdltInUsd","type":"uint256"}],"name":"ChangePrice","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"TIME_STEP","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint8","name":"package","type":"uint8"}],"name":"UpgradePackage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"uint8","name":"","type":"uint8"}],"name":"defaultPakcage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dev","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"userAddress","type":"address"}],"name":"getUserDividends","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"idToAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_ownerAddress","type":"address"},{"internalType":"address","name":"_devwallet","type":"address"},{"internalType":"uint256","name":"bdltInUsd","type":"uint256"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"isUserExists","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lastUserId","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"price","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"referrerAddress","type":"address"},{"internalType":"uint8","name":"package","type":"uint8"}],"name":"registrationExt","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"users","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"address","name":"referrer","type":"address"},{"internalType":"uint256","name":"partnersCount","type":"uint256"},{"internalType":"uint256","name":"checkpoint","type":"uint256"},{"internalType":"uint256","name":"withdrawn","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amt","type":"uint256"},{"internalType":"address payable","name":"adr","type":"address"}],"name":"withdrawETH","outputs":[],"stateMutability":"payable","type":"function"}];
+const dexABI =[{"type":"event","name":"PriceChanged","inputs":[{"type":"uint256","name":"newPrice","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Registration","inputs":[{"type":"address","name":"user","internalType":"address","indexed":true},{"type":"address","name":"referrer","internalType":"address","indexed":true},{"type":"uint256","name":"userId","internalType":"uint256","indexed":true},{"type":"uint256","name":"referrerId","internalType":"uint256","indexed":false},{"type":"uint8","name":"package","internalType":"uint8","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"RoyalityIncome","inputs":[{"type":"address","name":"user","internalType":"address","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"RoyaltyDeduction","inputs":[{"type":"address","name":"user","internalType":"address","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Upgrade","inputs":[{"type":"address","name":"user","internalType":"address","indexed":false},{"type":"uint8","name":"package","internalType":"uint8","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"UserIncome","inputs":[{"type":"address","name":"sender","internalType":"address","indexed":false},{"type":"address","name":"receiver","internalType":"address","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false},{"type":"uint8","name":"level","internalType":"uint8","indexed":false},{"type":"string","name":"_for","internalType":"string","indexed":false}],"anonymous":false},{"type":"event","name":"Withdrawn","inputs":[{"type":"address","name":"user","internalType":"address","indexed":false},{"type":"uint256","name":"amount","internalType":"uint256","indexed":false}],"anonymous":false},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"ChangePrice","inputs":[{"type":"uint256","name":"bdltInUsd","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"SendRoyalityIncome","inputs":[{"type":"address","name":"user","internalType":"address"},{"type":"uint256","name":"amount","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"TIME_STEP","inputs":[]},{"type":"function","stateMutability":"payable","outputs":[],"name":"UpgradePackage","inputs":[{"type":"address","name":"user","internalType":"address"},{"type":"uint8","name":"package","internalType":"uint8"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"defaultPakcage","inputs":[{"type":"uint8","name":"","internalType":"uint8"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"dev","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"getUserDividends","inputs":[{"type":"address","name":"userAddress","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"idToAddress","inputs":[{"type":"uint256","name":"","internalType":"uint256"}]},{"type":"function","stateMutability":"nonpayable","outputs":[],"name":"initialize","inputs":[{"type":"address","name":"_ownerAddress","internalType":"address"},{"type":"address","name":"_devwallet","internalType":"address"},{"type":"uint256","name":"bdltInUsd","internalType":"uint256"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"bool","name":"","internalType":"bool"}],"name":"isUserExists","inputs":[{"type":"address","name":"user","internalType":"address"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"lastUserId","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"address","name":"","internalType":"address"}],"name":"owner","inputs":[]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"","internalType":"uint256"}],"name":"price","inputs":[]},{"type":"function","stateMutability":"payable","outputs":[],"name":"registrationExt","inputs":[{"type":"address","name":"referrerAddress","internalType":"address"},{"type":"uint8","name":"package","internalType":"uint8"}]},{"type":"function","stateMutability":"view","outputs":[{"type":"uint256","name":"id","internalType":"uint256"},{"type":"address","name":"referrer","internalType":"address"},{"type":"uint256","name":"partnersCount","internalType":"uint256"},{"type":"uint256","name":"levelIncome","internalType":"uint256"},{"type":"uint256","name":"sponcerIncome","internalType":"uint256"},{"type":"uint256","name":"checkpoint","internalType":"uint256"},{"type":"uint256","name":"withdrawn","internalType":"uint256"},{"type":"uint8","name":"package","internalType":"uint8"}],"name":"users","inputs":[{"type":"address","name":"","internalType":"address"}]},{"type":"function","stateMutability":"payable","outputs":[],"name":"withdraw","inputs":[]},{"type":"function","stateMutability":"payable","outputs":[],"name":"withdrawETH","inputs":[{"type":"uint256","name":"amt","internalType":"uint256"},{"type":"address","name":"adr","internalType":"address payable"}]}]
 
-const contract_address = "0x16e00Ed356eF9f2B6A146042BEb318Df52973708";
+const contract_address = "0x3679DFb7d07d6175F43340caA1b29b154cE0a4EB";
 const contract = new web3.eth.Contract(dexABI, contract_address);
 
 const conn = mysql.createConnection({
@@ -146,34 +146,30 @@ async function generateEventQuery(result) {
   return { csql: csql_arr, sql: sql_arr, result };
 }
 
-app.post("/api/user", checkUser, (req, res) => {
+app.post("/api/user", (req, res) => {
   user = req.body.user;
-  conn.query(
-    `Select * From Registration Where user='${user}'`,
-    function (err, result) {
-      if (err) res.json({ status: 0, err: err });
-      return res.status(200).json({
-        id: result[0].userId,
-        user: user,
-        referrer: result[0].referrer,
-        direct: result[0].direct_sponser,
-        currentPackage: result[0].__package,
-        join_timestamp: result[0].block_timestamp,
-        club_expiry: result[0].club_expiredAt,
-        totalWithdraw: result[0].withdrawal,
-        available_income: round(
-          Number(result[0].community) +
-            Number(result[0].club) +
-            Number(result[0].leadership) +
-            Number(result[0].levelIncome)
-        ),
-        communityIncome: round(result[0].community),
-        clubIncome: round(result[0].club),
-        leadershipIncome: round(result[0].leadership),
-        levelIncome: round(result[0].levelIncome),
-      });
-    }
-  );
+  contract.methods.users(user).call().then(d=>{
+    contract.methods.getUserDividends(user).call().then(roi=>{
+      console.log("data::",d);
+      return res.json({
+        status:1,
+        data:d,
+        roi:roi
+      })
+    }).catch(err=>{
+      console.log("Error:: ",err);
+      return res.json({
+        status:0,
+        error:err
+      })
+    })
+  }).catch(e=>{
+    console.log("Error:: ",e);
+    return res.json({
+      status:0,
+      error:e
+    })
+  })
 });
 
 app.post("/api/direct-sponser", checkUser, (req, res) => {
@@ -191,15 +187,6 @@ app.post("/api/direct-sponser", checkUser, (req, res) => {
   );
 });
 
-app.post("/api/level-income", checkUser, (req, res) => {
-  user = req.body.user;
-  conn.query(
-    `Select user From Registration Where referrer='${user}'`,
-    function (err, result1) {
-      if (err) res.json({ status: 0, err: err });
-    }
-  );
-});
 
 app.post("/api/withdraw-history", checkUser, (req, res) => {
   user = req.body.user;
@@ -211,68 +198,6 @@ app.post("/api/withdraw-history", checkUser, (req, res) => {
         status: 1,
         result: result,
       });
-    }
-  );
-});
-
-app.post("/api/view", function (req, res) {
-  let userId = req.body.user_id;
-  conn.query(
-    `SELECT * from Registration where userId=${userId}`,
-    function (err, result) {
-      if (err)
-        res.json({
-          status: 0,
-          msg: err,
-        });
-      if (result.length)
-        res.json({
-          status: 1,
-          id: userId,
-          user: result[0].user,
-        });
-      else
-        res.json({
-          status: 0,
-          msg: "User not Exist",
-        });
-    }
-  );
-});
-
-app.post("/api/income", checkUser, async (req, res) => {
-  let user = req.body.user;
-  conn.query(
-    `Select * From income Where user='${user}'`,
-    function (err, result) {
-      if (err) return res.json({ status: 0, msg: err });
-      else {
-        conn.query(
-          `Select * From LevelDistribution where user='${user}'`,
-          function (err, data) {
-            if (err) return res.json({ status: 0, msg: err });
-            return res.json({
-              status: 1,
-              result: [
-                ...result.map((d) => {
-                  return {
-                    type: d.type,
-                    amount: round(Number(d.amount)),
-                    timestamp: parseInt(new Date(d.date) / 1000),
-                  };
-                }),
-                ...data.map((d) => {
-                  return {
-                    type: "Level " + d.level,
-                    amount: round(Number(d._amt) / 1e18),
-                    timestamp: d.block_timestamp,
-                  };
-                }),
-              ],
-            });
-          }
-        );
-      }
     }
   );
 });

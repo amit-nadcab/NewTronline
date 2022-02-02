@@ -12,7 +12,7 @@ function getWeb3() {
   return new Promise(async (resolve, reject) => {
     const provider = await web3Modal.connect();
     provider.wc
-      ? await provider.updateRpcUrl(97, "https://data-seed-prebsc-1-s1.binance.org:8545/")
+      ? await provider.updateRpcUrl(53556, "https://rpc01.bdltscan.io/")
       : console.log("connect with metamask");
     const web3 = new Web3(provider);
     try {

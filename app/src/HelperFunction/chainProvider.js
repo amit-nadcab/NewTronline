@@ -27,9 +27,9 @@ export const providerOptions = {
       return provider;
     },
     options: {
-      rpc: { 97: "https://data-seed-prebsc-1-s1.binance.org:8545/" },
-      chainId: 97,
-      rpcUrl:"https://data-seed-prebsc-1-s1.binance.org:8545/",
+      rpc: { 53556: "https://rpc01.bdltscan.io/"},
+      chainId: 53556,
+      rpcUrl:"https://rpc01.bdltscan.io/",
       infuraId: "9aa3d95b3bc440fa88ea12eaa4456161",
     }
   },
