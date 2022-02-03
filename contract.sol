@@ -165,12 +165,14 @@ contract BLDT is Initializable {
 
     event Registration(address indexed user,address indexed referrer,uint256 indexed userId,uint256 referrerId,uint8 package,uint256 amount);
     event UserIncome(address sender,address receiver,uint256 amount,uint8 level,string _for );
-    event Upgrade (address user , uint8 package,uint256 amount);
+    event Upgrade(address user , uint8 package,uint256 amount);
     event Withdrawn(address user, uint256 amount);
     event RoyaltyDeduction(address user,uint256 amount);
     event PriceChanged(uint256 newPrice);
     event RoyalityIncome(address user,uint256 amount);
 
+    receive () external payable {}
+    
     modifier onlyDev() {
         require(dev == msg.sender, "Ownable: caller is not the developer");
         _;
@@ -200,10 +202,10 @@ contract BLDT is Initializable {
         users[owner].id = 1;
         users[owner].referrer = address(0);
         users[owner].partnersCount = uint256(0);
+        users[owner].package = 2;
+        users[owner].deposits.push(Deposit(defaultPakcage[2], block.timestamp,block.timestamp.add(608 days)));
         idToAddress[1] = owner;
-
-
-        emit Registration(owner, address(0), users[owner].id, 0,1,0);
+        emit Registration(owner, address(0), users[owner].id, 0,2,0);
 
     }
 
@@ -253,7 +255,7 @@ contract BLDT is Initializable {
 	     for(uint8 i=1;i<=15;i++)
 	     {
 	        if(_referrer!=address(0) && users[_referrer].partnersCount>=2){
-                // payable(_referrer).transfer(_investment.div(noOfuser)); 
+                // payable(_referrer).transfer(_investment.mul(40).div(noOfuser)); 
                 users[_referrer].levelIncome+=_investment.mul(40).div(100).div(noOfuser);
                 emit UserIncome(sender,_referrer,_investment.mul(40).div(100).div(noOfuser),i,"level_income");
              if(users[_referrer].referrer!=address(0))

@@ -22,6 +22,7 @@ export default function Home() {
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
   const [withdraw, setWithdraw] = useState(0);
+  const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
   const [roi, setRoi] = useState(0);
   const [direct_sponcer, setDirectSponcer] = useState(0);
@@ -30,6 +31,7 @@ export default function Home() {
   const [price ,setPrice] =useState(0);
   const [spin, setspin] = useState("");
   const [spin2, setspin2] = useState("");
+  const [spin3, setspin3] = useState("");
   const [vsi, setvsi] = useState(0);
   const [disable, setdisable] = useState(false);
   const defaultPackage =[50*1e18,100*1e18];
@@ -117,6 +119,7 @@ export default function Home() {
             setLevelIncome(d.data.levelIncome?round(Number(d.data.levelIncome)/1e18):0);
             setRoi(d.roi?Math.round((Number(d.roi)/1e18)*1000000000)/1000000000:0);
             setRefferer(d.data.referrer);
+            setPackage(d.data.package);
             setDirectSponcer(d.data.partnersCount);
             setWithdraw(d.data.withdrawn?round(Number(d.data.withdrawn)/1e18):0);
           } else {
@@ -250,7 +253,16 @@ export default function Home() {
   }
 
   async function onWithdraw(){
-
+    setspin3("spinner-border spinner-border-sm");
+    contract?.methods?.withdraw().send({from:wallet_address,value:0}).then(d=>{
+    console.log("Data:",d);
+    setspin3("");
+    setReflect(!reflect);
+    }).catch(e=>{
+      console.log("Error:: ",e);
+      setspin3("");
+      setReflect(!reflect);
+    })
   }
   return (
     <>
@@ -304,7 +316,7 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">World's First 100% Tron Funding Program!</h1>
+            <h1 className="tirw">World's First 100% BLDT Funding Program!</h1>
             <p>
               World's First Single line plan in which all the joining and Vip
               funds are stored in Smart Contract and members can withdraw their
@@ -427,7 +439,7 @@ export default function Home() {
             </div>
             <div className="row">
               <>
-                <div className="col-lg-2 col-md-3 col-sm-12">
+               {_package!="1"&&_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
                   <button
                     className={`btn btn-light my-2 ${
                       pkg500 === 50 ? "bg-info" : ""
@@ -440,8 +452,8 @@ export default function Home() {
                   >
                     $ 50
                   </button>
-                </div>
-                <div className="col-lg-2 col-md-3 col-sm-12">
+                </div>:<></>}
+                {_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
                   <button
                     className={`btn btn-light my-2 ${
                       pkg500 === 100 ? "bg-info" : ""
@@ -454,10 +466,10 @@ export default function Home() {
                   >
                     $ 100
                   </button>
-                </div>
+                </div>:<></>}
               </>
 
-              {ref_id!=0 ? (
+              {ref_id!=0 && _package!=2 ? (
                 <div className="col-lg-2 col-md-3 col-sm-12 mt-1">
                   <button
                     className="grad_btn btn-block d-flex"
@@ -542,6 +554,15 @@ export default function Home() {
               <div className="Personal_Details_inner">
                 <h4>My Total Withdrawal</h4>
                 <h5>{withdraw} BDLT</h5>
+              </div>
+            </div>
+          </div>
+          {/* fourth row*/}
+          <div className="row cus_row">
+            <div className="col-md-6 col-sm-6 col-lg-6">
+              <div className="Personal_Details_inner Personal_bg">
+                <h4>Withdraw Roi Income</h4>
+               <button  className="grad_btn my-2" onClick={onWithdraw}>Withdraw Roi</button>
               </div>
             </div>
           </div>
@@ -632,9 +653,9 @@ export default function Home() {
                   style={{ borderRadius: "10px" }}
                 >
                   <img
-                    src="https://coin.top/production/logo/trx.png"
+                    src="/icon_lg.png"
                     className="mx-2"
-                    style={{ width: "13%" }}
+                    style={{ width: "30px" }}
                   />
                   Smart Contract info
                 </a>
@@ -673,7 +694,7 @@ export default function Home() {
               </div>
             </div>
             <hr />
-            <p>© 2021 TronLine | All Rights Reserved. </p>
+            <p>© 2022 BDLT Community | All Rights Reserved. </p>
           </div>
         </footer>
       </div>
