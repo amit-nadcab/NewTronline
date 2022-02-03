@@ -300,7 +300,7 @@ export default function Home() {
                 style={{ flexDirection: "column" }}
               >
                 <a
-                  href="/business_plan_tronline_2021.pdf"
+                  // href="/business_plan_tronline_2021.pdf"
                   className="grad_btn btn-block text-light my-2 "
                   style={{ padding: "10px 55px" }}
                   target="_blank"
@@ -316,14 +316,16 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">World's First 100% BLDT Funding Program!</h1>
-            <p>
+            <h1 className="tirw">BDLT Crowd Funding Program!</h1>
+            <p> World First Decentralized Program on BDLT Blockchain. All Funds are store in Smart Contract and members can withdraw their
+              reward directly from Smart contract. Get 200% Return On Investment .</p>
+            {/* <p>
               World's First Single line plan in which all the joining and Vip
               funds are stored in Smart Contract and members can withdraw their
               reward directly from Smart contract. 100% Distribution Plan. Now
               Get Rewarded from 20 people in community. Join VIP clubs and get
               your daily shares.
-            </p>
+            </p> */}
           </div>
         </div>
       </section>
