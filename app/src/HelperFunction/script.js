@@ -1,7 +1,7 @@
 
 import {CONTRACT_ADDRESS,CONTRACT_ABI} from './config';
 import getWeb3 from "./getWeb";
-const url = "http://localhost:8080/api";
+const url = "http://node.bdltcommunity.io/api";
 
 export const onConnect = () => {
   return new Promise(async (resolve,reject)=>{
@@ -13,15 +13,15 @@ export const onConnect = () => {
         window.location.reload();
       });
       const balance = await new web3.eth.getBalance(accounts[0]);
-      const price = await contract.methods.price().call();
+      const joiningPackage = await contract.methods.joiningPackage().call();
       web3.currentProvider.on("networkChanged", function (networkId) {
         window.location.reload();
       });
       window.userAddress=accounts[0];
       window.contract=contract;
       window.balance=balance/1e18;
-      window.price =price;
-      resolve({userAddress:accounts[0],contract:contract,balance:balance/1e18,price:price});
+      window.joiningPackage =joiningPackage;
+      resolve({userAddress:accounts[0],contract:contract,balance:balance/1e18,joiningPackage:joiningPackage});
     } catch (err) {
       alert(
         `Failed to load web3, accounts, or contract. Check console for details.`
