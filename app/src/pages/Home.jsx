@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { NotificationManager } from "react-notifications";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { BsTelegram } from "react-icons/bs";
@@ -16,11 +16,11 @@ export default function Home() {
   const [wallet_address, setWalletAddress] = useState("");
   const [balance, setBalance] = useState(0);
   const [contract, setContract] = useState({});
-  const [pkg500, setpkg500] = useState(50);
-  const [joinAmount, setjoinAmount] = useState(50);
+  const [joinAmount, setjoinAmount] = useState(0);
   const [ref_id, setref_id] = useState(0);
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
+  const [joiningPackage,setJoiningPackage]=useState(0);
   const [withdraw, setWithdraw] = useState(0);
   const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
@@ -28,73 +28,11 @@ export default function Home() {
   const [direct_sponcer, setDirectSponcer] = useState(0);
   const [reflect,setReflect] = useState(true);
   const [ref_id1, setref_id1] = useState();
-  const [price ,setPrice] =useState(0);
   const [spin, setspin] = useState("");
   const [spin2, setspin2] = useState("");
   const [spin3, setspin3] = useState("");
   const [vsi, setvsi] = useState(0);
   const [disable, setdisable] = useState(false);
-  const defaultPackage =[50*1e18,100*1e18];
-  const sponsorcolumn = [
-    {
-      name: "Level",
-      selector: (row) => row.level,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-    {
-      name: "USER Id",
-      selector: (row) => row.income_from_random_id,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-    {
-      name: "Sponsor Rewards",
-      selector: (row) => row.total_income.toFixed(2),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
-    {
-      name: "Timestamp",
-      selector: (row) => new Date(row.income_date).toLocaleString(),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
-  ];
-
-  const customStyles = {
-    rows: {
-      style: {
-        minHeight: "52px", // override the row height
-      },
-    },
-    headCells: {
-      style: {
-        fontSize: "14px",
-        fontWeight: "500",
-        textTransform: "uppercase",
-        paddingLeft: "0 8px",
-      },
-    },
-    cells: {
-      style: {
-        fontSize: "14px",
-        paddingLeft: "0 8px",
-      },
-    },
-  };
 
   const ref_addr = window.location.href;
   const reflink = useRef();
@@ -119,7 +57,7 @@ export default function Home() {
             setLevelIncome(d.data.levelIncome?round(Number(d.data.levelIncome)/1e18):0);
             setRoi(d.roi?Math.round((Number(d.roi)/1e18)*1000000000)/1000000000:0);
             setRefferer(d.data.referrer);
-            setPackage(d.data.package);
+            setjoinAmount(d.data.joiningAmt);
             setDirectSponcer(d.data.partnersCount);
             setWithdraw(d.data.withdrawn?round(Number(d.data.withdrawn)/1e18):0);
           } else {
@@ -149,6 +87,7 @@ export default function Home() {
     }
     return String(x);
   }
+
   async function onRegistration() {
     setspin("spinner-border spinner-border-sm");
     // balance >= joinAmount
@@ -166,11 +105,11 @@ export default function Home() {
                 console.log("Refferal Address ::", d);
                 if (d !== "0x0000000000000000000000000000000000000000") {
                   contract.methods
-                    .registrationExt(d, pkg500 == 50 ? 1 : 2)
+                    .registrationExt(d)
                     .send({
-                      // toFixed((defaultPackage[pkg500 == 50 ? 0 : 1]/price)*1e18),
                       from: wallet_address,
-                      value: 0,
+                      // value: joiningPackage,
+                      value:0
                     })
                     .then((d) => {
                       setspin("");
@@ -216,41 +155,6 @@ export default function Home() {
     }
   }
 
-  async function onUpgrade(){
-    setspin2("spinner-border spinner-border-sm");
-        // balance >= joinAmount
-        if (true) {
-          contract.methods
-          .isUserExists(wallet_address)
-          .call()
-          .then((is_exist) => {
-            if (is_exist) {
-              // toFixed((defaultPackage[pkg500 == 50 ? 0 : 1]/price)*1e18)
-              contract.methods.UpgradePackage(wallet_address,pkg500 == 50 ? 1 : 2).send({from:wallet_address,value:0}).then(d=>{
-                NotificationManager.success("Successfully Upgraded!");
-                setspin2("");
-              }).catch(e=>{
-                // NotificationManager.error("")
-                console.log("Error::: ",e)
-                setspin2("");
-                setReflect(!reflect);
-              })
-            }else {
-              NotificationManager.error("User not Exist!");
-              setspin2("");
-              setReflect(!reflect);
-            }
-          }).catch(e=>{
-            console.log("Error:::",e);
-            setspin2("");
-            setReflect(!reflect);
-          })
-        }else {
-          NotificationManager.error("Low Balance","Error");
-          setspin2("");
-          setReflect(!reflect);
-        }
-  }
 
   async function onWithdraw(){
     setspin3("spinner-border spinner-border-sm");
@@ -264,6 +168,7 @@ export default function Home() {
       setReflect(!reflect);
     })
   }
+
   return (
     <>
       <div className="container text-center mt-4">
@@ -330,7 +235,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="pt_50 pb_50">
+      {ref_id==0?<section className="pt_50 pb_50">
         <div
           className="row"
           style={{
@@ -362,7 +267,7 @@ export default function Home() {
                     ? wallet_address.substr(0, 10) +
                       "......." +
                       wallet_address.substr(25)
-                    : "Press Refresh for Wallet Address if Tronlink is connected"}
+                    : "Press Refresh for Wallet Address if Metamask is connected"}
                 </span>{" "}
               </h6>
               {!wallet_address ? (
@@ -376,7 +281,7 @@ export default function Home() {
                         setBalance(round(d?.balance));
                         setContract(d?.contract);
                         setWalletAddress(d?.userAddress);
-                        setPrice(d?.price);
+                        setJoiningPackage(d?.joiningPackage);
                       })
                       .catch((e) => console.log(e));
                   }}
@@ -392,8 +297,8 @@ export default function Home() {
           <div className="container">
             <div className="row">
               <div className="text-light" style={{ margin: "10px 0px",fontSize:"15px" }}>
-                Wallet Balance: {" " + balance + " "} BDLT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Selected
-                Package {": " + joinAmount}
+                Wallet Balance: {" " + balance + " "} BDLT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Joining 
+                Package {": " + parseInt(joiningPackage/1e18)} BDLT ($ 100)
               </div>
               <div className="col-md-8 col-lg-8 col-sm-8">
                 <div className="form-group">
@@ -402,6 +307,7 @@ export default function Home() {
                       className="cus_input"
                       type="text"
                       name="sponsor_address"
+                      placeholder="Enter Refferer Id "
                       onChange={(e) => {
                         setref_id1(e.target.value);
                       }}
@@ -439,7 +345,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="row">
+            {/* <div className="row">
               <>
                {_package!="1"&&_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
                   <button
@@ -489,10 +395,10 @@ export default function Home() {
               ) : (
                 <></>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
-      </section>
+      </section>:<></>}
 
       <section className="pb_50">
         <div className="container">
@@ -561,7 +467,7 @@ export default function Home() {
           </div>
           {/* fourth row*/}
           <div className="row cus_row">
-            <div className="col-md-6 col-sm-6 col-lg-6">
+            <div className="offset-md-3 col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Withdraw Roi Income</h4>
                <button  className="grad_btn my-2" onClick={onWithdraw}>Withdraw Roi</button>
@@ -586,7 +492,8 @@ export default function Home() {
                 <input
                   className="word-break refinpt"
                   ref={reflink}
-                  defaultValue={`http://localhost:3000?ref_id=${ref_id}`}
+                  defaultValue={`http://demo.bdltcommunity.io/?ref_id=${ref_id}`}
+          
                   style={{
                     background: "transparent",
                     color: "white",
@@ -650,7 +557,7 @@ export default function Home() {
               >
                 <a
                   className="grad_btn px-0 text-light"
-                  href="https://tronscan.org/#/contract/TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ"
+                  // href="https://tronscan.org/#/contract/TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ"
                   target="_blank"
                   style={{ borderRadius: "10px" }}
                 >
@@ -686,7 +593,7 @@ export default function Home() {
                     <BsTelegram size={24} color="white" />
                   </span>
                   <a
-                    href="https://t.me/Tronline_Admin"
+                    // href="https://t.me/Tronline_Admin"
                     className="text-light"
                     target="_blank"
                   >
