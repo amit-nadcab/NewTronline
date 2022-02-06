@@ -274,7 +274,7 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">BDLT Crowd Funding Program!</h1>
+            <h1 className="tirw">BDLT CROWD FUNDING PROGRAM -  BDLT COMMUNITY DEVELOPMENT PROGRAM</h1>
             <p>
               {" "}
               World First Decentralized Program on BDLT Blockchain. All Funds
