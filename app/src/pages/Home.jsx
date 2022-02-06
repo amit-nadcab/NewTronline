@@ -141,7 +141,7 @@ export default function Home() {
   async function onRegistration() {
     setspin("spinner-border spinner-border-sm");
     // balance >= joinAmount
-    if (true) {
+    if (balance >= joinAmount) {
       console.log("refferal Id::", ref_id1, joinAmount);
       contract.methods
         .isUserExists(wallet_address)
@@ -258,7 +258,7 @@ export default function Home() {
                 style={{ flexDirection: "column" }}
               >
                 <a
-                  // href="/business_plan_tronline_2021.pdf"
+                  href="/BDLT.pdf"
                   className="grad_btn btn-block text-light my-2 "
                   style={{ padding: "10px 55px" }}
                   target="_blank"
@@ -274,7 +274,7 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">BDLT CROWD FUNDING PROGRAM -  BDLT COMMUNITY DEVELOPMENT PROGRAM</h1>
+            <h1 className="tirw">BDLT CROWD FUNDING PROGRAM </h1> <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5>
             <p>
               {" "}
               World First Decentralized Program on BDLT Blockchain. All Funds
