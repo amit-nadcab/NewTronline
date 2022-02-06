@@ -6,10 +6,7 @@ import { Link } from "react-router-dom";
 
 import { BsTelegram } from "react-icons/bs";
 
-import {
-  getUserInfo,
-  onConnect,
-} from "../HelperFunction/script";
+import { getUserInfo, onConnect } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -20,13 +17,13 @@ export default function Home() {
   const [ref_id, setref_id] = useState(0);
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
-  const [joiningPackage,setJoiningPackage]=useState(0);
+  const [joiningPackage, setJoiningPackage] = useState(0);
   const [withdraw, setWithdraw] = useState(0);
   const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
   const [roi, setRoi] = useState(0);
   const [direct_sponcer, setDirectSponcer] = useState(0);
-  const [reflect,setReflect] = useState(true);
+  const [reflect, setReflect] = useState(true);
   const [ref_id1, setref_id1] = useState();
   const [spin, setspin] = useState("");
   const [spin2, setspin2] = useState("");
@@ -47,28 +44,81 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (wallet_address) {
-      getUserInfo(wallet_address)
-        .then((d) => {
-          console.log(d);
-          if (d.status == 1) {
-            setref_id(d.data.id);
-            setDirectIncome(d.data.sponcerIncome?round(Number(d.data.sponcerIncome)/1e18):0);
-            setLevelIncome(d.data.levelIncome?round(Number(d.data.levelIncome)/1e18):0);
-            setRoi(d.roi?Math.round((Number(d.roi)/1e18)*1000000000)/1000000000:0);
-            setRefferer(d.data.referrer);
-            setjoinAmount(d.data.joiningAmt);
-            setDirectSponcer(d.data.partnersCount);
-            setWithdraw(d.data.withdrawn?round(Number(d.data.withdrawn)/1e18):0);
-          } else {
-            console.log("Error:::", d.err);
-          }
+    if (contract?._address&&wallet_address) {
+      contract.methods
+        .users(wallet_address)
+        .call()
+        .then((data) => {
+          contract.methods
+            .getUserDividends(wallet_address)
+            .call()
+            .then((roi) => {
+              setref_id(data.id);
+              setDirectIncome(
+                data.sponcerIncome
+                  ? round(Number(data.sponcerIncome) / 1e18)
+                  : 0
+              );
+              setLevelIncome(
+                data.levelIncome ? round(Number(data.levelIncome) / 1e18) : 0
+              );
+              setRoi(
+                roi
+                  ? Math.round((Number(roi) / 1e18) * 1000000000) / 1000000000
+                  : 0
+              );
+              setRefferer(data.referrer);
+              setjoinAmount(data.joiningAmt);
+              setDirectSponcer(data.partnersCount);
+              setWithdraw(
+                data.withdrawn ? round(Number(data.withdrawn) / 1e18) : 0
+              );
+            })
+            .catch((e) => {
+              console.log(e);
+            });
         })
         .catch((e) => {
           console.log(e);
         });
     }
-  }, [wallet_address,reflect]);
+  }, [contract,wallet_address,reflect]);
+
+  // useEffect(() => {
+  //   if (wallet_address) {
+  //     getUserInfo(wallet_address)
+  //       .then((d) => {
+  //         console.log(d);
+  //         if (d.status == 1) {
+  //           setref_id(d.data.id);
+  //           setDirectIncome(
+  //             d.data.sponcerIncome
+  //               ? round(Number(d.data.sponcerIncome) / 1e18)
+  //               : 0
+  //           );
+  //           setLevelIncome(
+  //             d.data.levelIncome ? round(Number(d.data.levelIncome) / 1e18) : 0
+  //           );
+  //           setRoi(
+  //             d.roi
+  //               ? Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000
+  //               : 0
+  //           );
+  //           setRefferer(d.data.referrer);
+  //           setjoinAmount(d.data.joiningAmt);
+  //           setDirectSponcer(d.data.partnersCount);
+  //           setWithdraw(
+  //             d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) : 0
+  //           );
+  //         } else {
+  //           console.log("Error:::", d.err);
+  //         }
+  //       })
+  //       .catch((e) => {
+  //         console.log(e);
+  //       });
+  //   }
+  // }, [wallet_address, reflect]);
 
   function toFixed(x) {
     if (Math.abs(x) < 1.0) {
@@ -108,19 +158,19 @@ export default function Home() {
                     .registrationExt(d)
                     .send({
                       from: wallet_address,
-                      // value: joiningPackage,
-                      value:0
+                      value: joiningPackage,
+                      // value: 0,
                     })
                     .then((d) => {
                       setspin("");
                       setdisable(false);
-                      setReflect(!reflect)
+                      setReflect(!reflect);
                     })
                     .catch((e) => {
                       console.log("Error :: ", e);
                       setspin("");
                       setdisable(false);
-                      setReflect(!reflect)
+                      setReflect(!reflect);
                     });
                 } else {
                   NotificationManager.error(
@@ -129,7 +179,7 @@ export default function Home() {
                   );
                   setspin("");
                   setdisable(false);
-                  setReflect(!reflect)
+                  setReflect(!reflect);
                 }
               })
               .catch((e) => {
@@ -155,18 +205,21 @@ export default function Home() {
     }
   }
 
-
-  async function onWithdraw(){
+  async function onWithdraw() {
     setspin3("spinner-border spinner-border-sm");
-    contract?.methods?.withdraw().send({from:wallet_address,value:0}).then(d=>{
-    console.log("Data:",d);
-    setspin3("");
-    setReflect(!reflect);
-    }).catch(e=>{
-      console.log("Error:: ",e);
-      setspin3("");
-      setReflect(!reflect);
-    })
+    contract?.methods
+      ?.withdraw()
+      .send({ from: wallet_address, value: 0 })
+      .then((d) => {
+        console.log("Data:", d);
+        setspin3("");
+        setReflect(!reflect);
+      })
+      .catch((e) => {
+        console.log("Error:: ", e);
+        setspin3("");
+        setReflect(!reflect);
+      });
   }
 
   return (
@@ -222,8 +275,12 @@ export default function Home() {
         <div className="container">
           <div className="banner_text text-center middle_text">
             <h1 className="tirw">BDLT Crowd Funding Program!</h1>
-            <p> World First Decentralized Program on BDLT Blockchain. All Funds are store in Smart Contract and members can withdraw their
-              reward directly from Smart contract. Get 200% Return On Investment .</p>
+            <p>
+              {" "}
+              World First Decentralized Program on BDLT Blockchain. All Funds
+              are store in Smart Contract and members can withdraw their reward
+              directly from Smart contract. Get 200% Return On Investment .
+            </p>
             {/* <p>
               World's First Single line plan in which all the joining and Vip
               funds are stored in Smart Contract and members can withdraw their
@@ -235,117 +292,123 @@ export default function Home() {
         </div>
       </section>
 
-      {ref_id==0?<section className="pt_50 pb_50">
-        <div
-          className="row"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-        </div>
-
-        <div className="container">
-          <div className="all_heading text-center">
-            <h2>
-              <span>Join Us now</span>&nbsp;
-            </h2>
-            <div
-              className="small_heading my-3"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <h6>
-                Wallet address -{" "}
-                <span style={{ fontSize: "15px" }}>
-                  {wallet_address
-                    ? wallet_address.substr(0, 10) +
-                      "......." +
-                      wallet_address.substr(25)
-                    : "Press Refresh for Wallet Address if Metamask is connected"}
-                </span>{" "}
-              </h6>
-              {!wallet_address ? (
-                <button
-                  className="grad_btn btn-block mx-4"
-                  style={{ padding: "10px 15px" }}
-                  onClick={() => {
-                    onConnect()
-                      .then((d) => {
-                        console.log(d);
-                        setBalance(round(d?.balance));
-                        setContract(d?.contract);
-                        setWalletAddress(d?.userAddress);
-                        setJoiningPackage(d?.joiningPackage);
-                      })
-                      .catch((e) => console.log(e));
-                  }}
-                >
-                  Connect Wallet
-                </button>
-              ) : (
-                <></>
-              )}
-            </div>
-          </div>
+      {ref_id == 0 ? (
+        <section className="pt_50 pb_50">
+          <div
+            className="row"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          ></div>
 
           <div className="container">
-            <div className="row">
-              <div className="text-light" style={{ margin: "10px 0px",fontSize:"15px" }}>
-                Wallet Balance: {" " + balance + " "} BDLT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Joining 
-                Package {": " + parseInt(joiningPackage/1e18)} BDLT ($ 100)
-              </div>
-              <div className="col-md-8 col-lg-8 col-sm-8">
-                <div className="form-group">
-                  {ref_id!=0 ? null : (
-                    <input
-                      className="cus_input"
-                      type="text"
-                      name="sponsor_address"
-                      placeholder="Enter Refferer Id "
-                      onChange={(e) => {
-                        setref_id1(e.target.value);
-                      }}
-                      value={ref_id1 ? ref_id1 : ""}
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="col-md-4 col-lg-4 col-sm-4">
-                <div className="form-group">
-                  {ref_id!=0 ? null : (
-                    <button
-                      className="grad_btn btn-block"
-                      style={{ padding: "10px 95px" }}
-                      onClick={() => {
-                        if (wallet_address) {
-                          if (ref_id1) {
-                            setdisable(true);
-                            onRegistration(contract, wallet_address);
-                          } else {
-                            NotificationManager.info(
-                              "Please provide Referral Id"
-                            );
-                          }
-                        } else {
-                          NotificationManager.info("Please Connect  Wallet!!");
-                        }
-                      }}
-                      disabled={disable}
-                    >
-                      <span className={`${spin} mx-2`}></span>
-                      Join Now
-                    </button>
-                  )}
-                </div>
+            <div className="all_heading text-center">
+              <h2>
+                <span>Join Us now</span>&nbsp;
+              </h2>
+              <div
+                className="small_heading my-3"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <h6>
+                  Wallet address -{" "}
+                  <span style={{ fontSize: "15px" }}>
+                    {wallet_address
+                      ? wallet_address.substr(0, 10) +
+                        "......." +
+                        wallet_address.substr(25)
+                      : "Press Refresh for Wallet Address if Metamask is connected"}
+                  </span>{" "}
+                </h6>
+                {!wallet_address ? (
+                  <button
+                    className="grad_btn btn-block mx-4"
+                    style={{ padding: "10px 15px" }}
+                    onClick={() => {
+                      onConnect()
+                        .then((d) => {
+                          console.log(d);
+                          setBalance(round(d?.balance));
+                          setContract(d?.contract);
+                          setWalletAddress(d?.userAddress);
+                          setJoiningPackage(d?.joiningPackage);
+                        })
+                        .catch((e) => console.log(e));
+                    }}
+                  >
+                    Connect Wallet
+                  </button>
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
-            {/* <div className="row">
+
+            <div className="container">
+              <div className="row">
+                <div
+                  className="text-light"
+                  style={{ margin: "10px 0px", fontSize: "15px" }}
+                >
+                  Wallet Balance: {" " + balance + " "} BDLT
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Joining Package{" "}
+                  {": " + parseInt(joiningPackage / 1e18)} BDLT ($ 100)
+                </div>
+                <div className="col-md-8 col-lg-8 col-sm-8">
+                  <div className="form-group">
+                    {ref_id != 0 ? null : (
+                      <input
+                        className="cus_input"
+                        type="text"
+                        name="sponsor_address"
+                        placeholder="Enter Refferer Id "
+                        onChange={(e) => {
+                          setref_id1(e.target.value);
+                        }}
+                        value={ref_id1 ? ref_id1 : ""}
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="col-md-4 col-lg-4 col-sm-4">
+                  <div className="form-group">
+                    {ref_id != 0 ? null : (
+                      <button
+                        className="grad_btn btn-block"
+                        style={{ padding: "10px 95px" }}
+                        onClick={() => {
+                          if (wallet_address) {
+                            if (ref_id1) {
+                              setdisable(true);
+                              onRegistration(contract, wallet_address);
+                            } else {
+                              NotificationManager.info(
+                                "Please provide Referral Id"
+                              );
+                            }
+                          } else {
+                            NotificationManager.info(
+                              "Please Connect  Wallet!!"
+                            );
+                          }
+                        }}
+                        disabled={disable}
+                      >
+                        <span className={`${spin} mx-2`}></span>
+                        Join Now
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* <div className="row">
               <>
                {_package!="1"&&_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
                   <button
@@ -396,9 +459,12 @@ export default function Home() {
                 <></>
               )}
             </div> */}
+            </div>
           </div>
-        </div>
-      </section>:<></>}
+        </section>
+      ) : (
+        <></>
+      )}
 
       <section className="pb_50">
         <div className="container">
@@ -470,14 +536,14 @@ export default function Home() {
             <div className="offset-md-3 col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Withdraw Roi Income</h4>
-               <button  className="grad_btn my-2" onClick={onWithdraw}>Withdraw Roi</button>
+                <button className="grad_btn my-2" onClick={onWithdraw}>
+                  Withdraw Roi
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-
 
       <section className="pb_50">
         <div className="container">
@@ -493,7 +559,6 @@ export default function Home() {
                   className="word-break refinpt"
                   ref={reflink}
                   defaultValue={`http://demo.bdltcommunity.io/?ref_id=${ref_id}`}
-          
                   style={{
                     background: "transparent",
                     color: "white",
@@ -584,7 +649,8 @@ export default function Home() {
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    background: "linear-gradient(to right, rgb(183 183 183), rgb(92 91 94))",
+                    background:
+                      "linear-gradient(to right, rgb(183 183 183), rgb(92 91 94))",
                     padding: "8px 15px",
                     borderRadius: "10px",
                   }}

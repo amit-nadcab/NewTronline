@@ -129,7 +129,7 @@ library SafeMath {
     }
 }
 
-contract BLDT is Initializable {
+contract BDLTCommunity is Initializable {
 
     using SafeMath for uint256;
 
@@ -139,22 +139,18 @@ contract BLDT is Initializable {
         uint256 partnersCount;
         uint256 levelIncome;
         uint256 sponcerIncome;
-        Deposit []deposits;	
 		uint256 checkpoint;
+        uint256 start;
+        uint256 joiningAmt;
+        uint256 end;
         uint256 withdrawn;
-        uint8 package;
     }
 
-	struct Deposit {
-		uint256 amount;
-		uint256 start;
-        uint256 end;
-	}
 
-    mapping(uint8=>uint256 ) public defaultPakcage;
+    uint256 public joiningPackage;
     mapping(address => User) public users;
     mapping(uint256 => address) public idToAddress;
-
+    uint256 public totalRoyality;
     uint256 public lastUserId;
 
     address public owner;
@@ -163,9 +159,8 @@ contract BLDT is Initializable {
     uint256 public price;
     uint256 public TIME_STEP;
 
-    event Registration(address indexed user,address indexed referrer,uint256 indexed userId,uint256 referrerId,uint8 package,uint256 amount);
+    event Registration(address indexed user,address indexed referrer,uint256 indexed userId,uint256 referrerId,uint256 amount);
     event UserIncome(address sender,address receiver,uint256 amount,uint8 level,string _for );
-    event Upgrade(address user , uint8 package,uint256 amount);
     event Withdrawn(address user, uint256 amount);
     event RoyaltyDeduction(address user,uint256 amount);
     event PriceChanged(uint256 newPrice);
@@ -187,10 +182,7 @@ contract BLDT is Initializable {
         public
         initializer
     {
-
-        defaultPakcage[1]= ((50*1e18)/bdltInUsd)*(1e18);
-        defaultPakcage[2]= ((100*1e18)/bdltInUsd)*(1e18);
-        
+        joiningPackage= ((100*1e18)/bdltInUsd)*(1e18);
         price =bdltInUsd;
         dev =_devwallet;
 
@@ -202,19 +194,20 @@ contract BLDT is Initializable {
         users[owner].id = 1;
         users[owner].referrer = address(0);
         users[owner].partnersCount = uint256(0);
-        users[owner].package = 2;
-        users[owner].deposits.push(Deposit(defaultPakcage[2], block.timestamp,block.timestamp.add(608 days)));
+        users[owner].start = block.timestamp;
+        users[owner].end = block.timestamp.add(608 days);
+        users[owner].joiningAmt=joiningPackage;
         idToAddress[1] = owner;
-        emit Registration(owner, address(0), users[owner].id, 0,2,0);
+        emit Registration(owner, address(0), users[owner].id, 0,joiningPackage);
 
     }
 
-    function registrationExt(address referrerAddress,uint8 package) external payable {
-        registration(msg.sender, referrerAddress,package);
+    function registrationExt(address referrerAddress) external payable {
+        registration(msg.sender, referrerAddress);
     }
     
-    function registration(address userAddress, address referrerAddress,uint8 package) private {
-        // require(msg.value>= defaultPackage[package],"Low Balance");
+    function registration(address userAddress, address referrerAddress) private {
+        require(msg.value>= joiningPackage,"Low Balance");
         require(!isUserExists(userAddress), "user exists");
         require(isUserExists(referrerAddress), "Referrer not exists");
         uint32 size;
@@ -226,43 +219,47 @@ contract BLDT is Initializable {
         users[userAddress].id = lastUserId;
         users[userAddress].referrer = referrerAddress;
         users[userAddress].partnersCount = 0;
-        users[userAddress].package=package;
+        users[userAddress].joiningAmt=joiningPackage;
         lastUserId++;
         users[referrerAddress].partnersCount++;
-        // payable(referrerAddress).transfer(defaultPakcage[package].mul(10).div(100));
-        users[userAddress].deposits.push(Deposit(defaultPakcage[package], block.timestamp,block.timestamp.add(608 days)));
-        users[referrerAddress].sponcerIncome+=defaultPakcage[package].mul(10).div(100);
-        emit UserIncome(userAddress,referrerAddress,defaultPakcage[package].mul(10).div(100),1,"direct_sponcer");
-        emit Registration(userAddress,referrerAddress,users[userAddress].id,users[referrerAddress].id,package,defaultPakcage[package]);
-        _calculateReferrerReward(defaultPakcage[package],referrerAddress,userAddress);
-        emit RoyaltyDeduction(userAddress,defaultPakcage[package].mul(16).div(100));
+        payable(referrerAddress).transfer(joiningPackage.mul(10).div(100));
+        users[userAddress].start = block.timestamp;
+        users[userAddress].end = block.timestamp.add(608 days);
+        users[userAddress].joiningAmt=joiningPackage;
+        users[referrerAddress].sponcerIncome+=joiningPackage.mul(10).div(100);
+        emit UserIncome(userAddress,referrerAddress,joiningPackage.mul(10).div(100),1,"direct_sponcer");
+        emit Registration(userAddress,referrerAddress,users[userAddress].id,users[referrerAddress].id,joiningPackage);
+        _calculateReferrerReward(joiningPackage,referrerAddress,userAddress);
+        totalRoyality+=joiningPackage.mul(155).div(1000);
+        emit RoyaltyDeduction(userAddress,joiningPackage.mul(155).div(1000));
     }
 
     function _calculateReferrerReward(uint256 _investment, address _referrer,address sender) private {
          uint8 noOfuser=0;
+         address new_referrer=_referrer;
 	     for(uint8 i=1;i<=15;i++)
 	     {
-	        if(_referrer!=address(0) && users[_referrer].partnersCount>=2){
+	        if(_referrer!=address(0) && users[_referrer].partnersCount>=2)
                noOfuser++;
-             if(users[_referrer].referrer!=address(0))
+
+            if(users[_referrer].referrer!=address(0))
                 _referrer=users[_referrer].referrer;
-            else
+            else 
                 break;
-	         }
 	         
 	     }
          
 	     for(uint8 i=1;i<=15;i++)
 	     {
-	        if(_referrer!=address(0) && users[_referrer].partnersCount>=2){
-                // payable(_referrer).transfer(_investment.mul(40).div(noOfuser)); 
-                users[_referrer].levelIncome+=_investment.mul(40).div(100).div(noOfuser);
-                emit UserIncome(sender,_referrer,_investment.mul(40).div(100).div(noOfuser),i,"level_income");
-             if(users[_referrer].referrer!=address(0))
-                _referrer=users[_referrer].referrer;
+	        if(new_referrer!=address(0) && users[new_referrer].partnersCount>=2){
+                payable(new_referrer).transfer(_investment.mul(40).div(100).div(noOfuser)); 
+                users[new_referrer].levelIncome=users[new_referrer].levelIncome.add(_investment.mul(40).div(100).div(noOfuser));
+                emit UserIncome(sender,new_referrer,_investment.mul(40).div(100).div(noOfuser),i,"level_income");
+            }
+             if(users[new_referrer].referrer!=address(0))
+                new_referrer=users[new_referrer].referrer;
             else
                 break;
-	         }
 	         
 	     }
          
@@ -274,18 +271,16 @@ contract BLDT is Initializable {
 
 	function getUserDividends(address userAddress) public view returns (uint256) {
 		User storage user = users[userAddress];
-		uint256 totalAmount;
-		for (uint256 i = 0; i < user.deposits.length; i++) {
-			uint256 finish = user.deposits[i].end;
+            uint256 totalAmount;
+			uint256 finish = user.end;
 			if (user.checkpoint < finish) {
-				uint256 share = user.deposits[i].amount.mul(10).div(100);
-				uint256 from = user.deposits[i].start > user.checkpoint ? user.deposits[i].start : user.checkpoint;
+				uint256 share = user.joiningAmt.mul(10).div(100);
+				uint256 from = user.start > user.checkpoint ? user.start : user.checkpoint;
 				uint256 to = finish < block.timestamp ? finish : block.timestamp;
 				if (from < to) {
 					totalAmount = totalAmount.add(share.mul(to.sub(from)).div(TIME_STEP));
 				}
 			}
-		}
 
 		return totalAmount;
 	}
@@ -298,29 +293,12 @@ contract BLDT is Initializable {
         require(totalAmount<address(this).balance,"contract have less balance");
 		user.checkpoint = block.timestamp;
 		user.withdrawn = user.withdrawn.add(totalAmount);
-
-		// payable(msg.sender).transfer(totalAmount);
-
+		payable(msg.sender).transfer(totalAmount);
 		emit Withdrawn(msg.sender, totalAmount);
 	}
 
-    function UpgradePackage(address user ,uint8 package) external payable {
-        // require(msg.value>= defaultPackage[package],"Low Balance");
-        require(isUserExists(user), "User not exists");
-        users[user].deposits.push(Deposit(defaultPakcage[package], block.timestamp,block.timestamp.add(608 days)));
-        users[user].package=package;
-        // payable(users[user].referrer).transfer(defaultPakcage[package].mul(10).div(100));
-        users[users[user].referrer].sponcerIncome+=defaultPakcage[package].mul(10).div(100);
-        emit UserIncome(user,users[user].referrer,defaultPakcage[package].mul(10).div(100),1,"direct_sponcer");
-        _calculateReferrerReward(defaultPakcage[package],users[user].referrer,user);
-
-        emit RoyaltyDeduction(user,defaultPakcage[package].mul(16).div(100));
-         
-    }
-    
     function ChangePrice(uint256 bdltInUsd) external onlyDev{
-        defaultPakcage[1]= ((50*1e18)/bdltInUsd)*(1e18);
-        defaultPakcage[2]= ((100*1e18)/bdltInUsd)*(1e18);
+        joiningPackage= ((100*1e18)/bdltInUsd)*(1e18);
 
         price = bdltInUsd;
     
@@ -331,15 +309,24 @@ contract BLDT is Initializable {
         require(isUserExists(user),"User not exist !");
         require(amount>0 ,"Amount is Low");
         payable(user).transfer(amount);
+        totalRoyality-=amount;
         emit RoyalityIncome(user,amount);
     }
 
-    function withdrawETH(uint256 amt, address payable adr)
+    function withdrawETH( address payable _receiver,uint256 amt)
         public
         payable
         onlyOwner
     {
-        adr.transfer(amt);
+        _receiver.transfer(amt);
+    }
+
+    function changeDevwallet(address newWallet) external onlyOwner {
+        dev = newWallet;
+    }
+
+    function changeOwnership(address newWallet) external onlyOwner {
+        owner = newWallet;
     }
 
 }
