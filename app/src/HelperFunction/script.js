@@ -1,11 +1,11 @@
 
-import {CONTRACT_ADDRESS,CONTRACT_ABI} from './config';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config';
 import getWeb3 from "./getWeb";
 // const url = "http://node.bdltcommunity.io/api";
 const url = "http://localhost:8080/api";
 
 export const onConnect = () => {
-  return new Promise(async (resolve,reject)=>{
+  return new Promise(async (resolve, reject) => {
     try {
       const web3 = await getWeb3();
       const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
@@ -18,34 +18,58 @@ export const onConnect = () => {
       web3.currentProvider.on("networkChanged", function (networkId) {
         window.location.reload();
       });
-      window.userAddress=accounts[0];
-      window.contract=contract;
-      window.balance=balance/1e18;
-      window.joiningPackage =joiningPackage;
-      resolve({userAddress:accounts[0],contract:contract,balance:balance/1e18,joiningPackage:joiningPackage});
+      window.userAddress = accounts[0];
+      window.contract = contract;
+      window.balance = balance / 1e18;
+      window.joiningPackage = joiningPackage;
+      resolve({ userAddress: accounts[0], contract: contract, balance: balance / 1e18, joiningPackage: joiningPackage });
     } catch (err) {
       alert(
         `Failed to load web3, accounts, or contract. Check console for details.`
       );
       console.error(err);
-        reject(err);
+      reject(err);
     }
   })
 };
 
 
-export const getUserInfo=(user)=>{
-  return fetch(`${url}/user`,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
+export const getUserInfo = (user) => {
+  return fetch(`${url}/user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     },
-    body:JSON.stringify({
-      user:user,
+    body: JSON.stringify({
+      user: user,
     })
-  }).then(d=>d.json())
-  .catch(e=>e)
+  }).then(d => d.json())
+    .catch(e => e)
 }
+
+export const getIncome = (user) => {
+  return fetch(`${url}/income`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
+
+export const getTeam = (user) => {
+  return fetch(`http://localhost/bdlt_api/team.php`, {
+    method: "POST",
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
+
 
 
 

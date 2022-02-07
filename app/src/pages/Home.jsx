@@ -6,12 +6,14 @@ import { Link } from "react-router-dom";
 
 import { BsTelegram } from "react-icons/bs";
 
-import { getUserInfo, onConnect } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, onConnect } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
   const [wallet_address, setWalletAddress] = useState("");
   const [balance, setBalance] = useState(0);
+  const [team, setTeam] = useState([]);
+  const [income, setIncome] = useState([]);
   const [contract, setContract] = useState({});
   const [joinAmount, setjoinAmount] = useState(0);
   const [ref_id, setref_id] = useState(0);
@@ -42,83 +44,225 @@ export default function Home() {
     let nnnnn = ref_addr.split("?ref_id=");
     setref_id1(nnnnn[1]);
   }, []);
+  const teamcolumn = [
+    {
+      name: "Level",
+      selector: (row) => row.level,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
 
-  useEffect(() => {
-    if (contract?._address&&wallet_address) {
-      contract.methods
-        .users(wallet_address)
-        .call()
-        .then((data) => {
-          contract.methods
-            .getUserDividends(wallet_address)
-            .call()
-            .then((roi) => {
-              setref_id(data.id);
-              setDirectIncome(
-                data.sponcerIncome
-                  ? round(Number(data.sponcerIncome) / 1e18)
-                  : 0
-              );
-              setLevelIncome(
-                data.levelIncome ? round(Number(data.levelIncome) / 1e18) : 0
-              );
-              setRoi(
-                roi
-                  ? Math.round((Number(roi) / 1e18) * 1000000000) / 1000000000
-                  : 0
-              );
-              setRefferer(data.referrer);
-              setjoinAmount(data.joiningAmt);
-              setDirectSponcer(data.partnersCount);
-              setWithdraw(
-                data.withdrawn ? round(Number(data.withdrawn) / 1e18) : 0
-              );
-            })
-            .catch((e) => {
-              console.log(e);
-            });
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    }
-  }, [contract,wallet_address,reflect]);
+    {
+      name: "User Id",
+      selector: (row) => row.user_id,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Wallet Address",
+      selector: (row) => row.user,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
 
+    {
+      name: "Timestamp",
+      selector: (row) => row.registration_date,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+  ];
+
+  const incomecolumn = [
+    {
+      name: "Level",
+      selector: (row) => row.level,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+
+    {
+      name: "User Id",
+      selector: (row) => row.id,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "User Wallet Address",
+      selector: (row) => row.receiver,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Sender",
+      selector: (row) => row.sender,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Amount",
+      selector: (row) => (row.amount) / 1e18,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Income Type",
+      selector: (row) => row._for,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Timestamp",
+      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+  ];
+
+  const customStyles = {
+    rows: {
+      style: {
+        minHeight: "52px", // override the row height
+      },
+    },
+    headCells: {
+      style: {
+        fontSize: "14px",
+        fontWeight: "500",
+        textTransform: "uppercase",
+        paddingLeft: "0 8px",
+      },
+    },
+    cells: {
+      style: {
+        fontSize: "14px",
+        paddingLeft: "0 8px",
+      },
+    },
+  };
   // useEffect(() => {
-  //   if (wallet_address) {
-  //     getUserInfo(wallet_address)
-  //       .then((d) => {
-  //         console.log(d);
-  //         if (d.status == 1) {
-  //           setref_id(d.data.id);
-  //           setDirectIncome(
-  //             d.data.sponcerIncome
-  //               ? round(Number(d.data.sponcerIncome) / 1e18)
-  //               : 0
-  //           );
-  //           setLevelIncome(
-  //             d.data.levelIncome ? round(Number(d.data.levelIncome) / 1e18) : 0
-  //           );
-  //           setRoi(
-  //             d.roi
-  //               ? Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000
-  //               : 0
-  //           );
-  //           setRefferer(d.data.referrer);
-  //           setjoinAmount(d.data.joiningAmt);
-  //           setDirectSponcer(d.data.partnersCount);
-  //           setWithdraw(
-  //             d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) : 0
-  //           );
-  //         } else {
-  //           console.log("Error:::", d.err);
-  //         }
+  //   if (contract?._address&&wallet_address) {
+  //     contract.methods
+  //       .users(wallet_address)
+  //       .call()
+  //       .then((data) => {
+  //         contract.methods
+  //           .getUserDividends(wallet_address)
+  //           .call()
+  //           .then((roi) => {
+  //             setref_id(data.id);
+  //             setDirectIncome(
+  //               data.sponcerIncome
+  //                 ? round(Number(data.sponcerIncome) / 1e18)
+  //                 : 0
+  //             );
+  //             setLevelIncome(
+  //               data.levelIncome ? round(Number(data.levelIncome) / 1e18) : 0
+  //             );
+  //             setRoi(
+  //               roi
+  //                 ? Math.round((Number(roi) / 1e18) * 1000000000) / 1000000000
+  //                 : 0
+  //             );
+  //             setRefferer(data.referrer);
+  //             setjoinAmount(data.joiningAmt);
+  //             setDirectSponcer(data.partnersCount);
+  //             setWithdraw(
+  //               data.withdrawn ? round(Number(data.withdrawn) / 1e18) : 0
+  //             );
+  //           })
+  //           .catch((e) => {
+  //             console.log(e);
+  //           });
   //       })
   //       .catch((e) => {
   //         console.log(e);
   //       });
   //   }
-  // }, [wallet_address, reflect]);
+  // }, [contract,wallet_address,reflect]);
+
+  useEffect(() => {
+    if (wallet_address) {
+      getUserInfo(wallet_address)
+        .then((d) => {
+          console.log(d);
+          if (d.status == 1) {
+            setref_id(d.data.id);
+            setDirectIncome(
+              d.data.sponcerIncome
+                ? round(Number(d.data.sponcerIncome) / 1e18)
+                : 0
+            );
+            setLevelIncome(
+              d.data.levelIncome ? round(Number(d.data.levelIncome) / 1e18) : 0
+            );
+            setRoi(
+              d.roi
+                ? Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000
+                : 0
+            );
+            setRefferer(d.data.referrer);
+            setjoinAmount(d.data.joiningAmt);
+            setDirectSponcer(d.data.partnersCount);
+            setWithdraw(
+              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) : 0
+            );
+          } else {
+            console.log("Error:::", d.err);
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+      getTeam(wallet_address).then((ss) => {
+        if (ss) {
+          setTeam(ss);
+        }
+      }).catch((e) => {
+        console.log(e);
+      });
+      getIncome(wallet_address).then((ss) => {
+        if (ss) {
+          setIncome(ss.result);
+        }
+      }).catch((e) => {
+        console.log(e);
+      });
+    }
+  }, [wallet_address, reflect]);
 
   function toFixed(x) {
     if (Math.abs(x) < 1.0) {
@@ -158,8 +302,8 @@ export default function Home() {
                     .registrationExt(d)
                     .send({
                       from: wallet_address,
-                      value: joiningPackage,
-                      // value: 0,
+                      // value: joiningPackage,
+                      value: 0,
                     })
                     .then((d) => {
                       setspin("");
@@ -322,8 +466,8 @@ export default function Home() {
                   <span style={{ fontSize: "15px" }}>
                     {wallet_address
                       ? wallet_address.substr(0, 10) +
-                        "......." +
-                        wallet_address.substr(25)
+                      "......." +
+                      wallet_address.substr(25)
                       : "Press Refresh for Wallet Address if Metamask is connected"}
                   </span>{" "}
                 </h6>
@@ -539,6 +683,65 @@ export default function Home() {
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section className="pb_50">
+        <div className="container">
+          <div className="all_heading text-center">
+            <h2>
+              <span>Team Members</span>
+            </h2>
+          </div>
+          <div className="sm_container">
+            <div className="table_inner">
+              <div className="table-responsive gridtable">
+                <DataTable
+                  columns={teamcolumn}
+                  data={
+                    team.length !== 0
+                      ? team
+                      : []
+                  }
+                  pagination
+                  paginationPerPage={4}
+                  progressPending={false}
+                  customStyles={customStyles}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      <section className="pb_50">
+        <div className="container">
+          <div className="all_heading text-center">
+            <h2>
+              <span>Rewards</span>
+            </h2>
+          </div>
+          <div className="sm_container">
+            <div className="table_inner">
+              <div className="table-responsive gridtable">
+                <DataTable
+                  columns={incomecolumn}
+                  data={
+                    income.length !== 0
+                      ? income
+                      : []
+                  }
+                  pagination
+                  paginationPerPage={4}
+                  progressPending={false}
+                  customStyles={customStyles}
+                />
               </div>
             </div>
           </div>

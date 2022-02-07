@@ -53,6 +53,7 @@ function checkUser(req, res, next) {
     }
   );
 }
+
 function calcRoyalty() {
   return new Promise((resolve, reject) => {
     var d = new Date();
@@ -83,6 +84,7 @@ function calcRoyalty() {
   })
 
 }
+
 function calcLevel(level) {
   return new Promise((resolve, reject) => {
     console.log(level);
@@ -99,13 +101,31 @@ function calcLevel(level) {
       }
     );
   })
-
 }
+function directLevel(id) {
+  return new Promise((resolve, reject) => {
+    console.log(level);
+    conn.query(
+      `Select * from Registration where user ='${level}'`,
+      function (err, result) {
+        if (err) reject({ status: 0, err: err });
+        let amt = 0;
+        if (result) {
+          resolve({
+            result: result,
+          });
+        }
+      }
+    );
+  })
+}
+
 
 conn.connect(function (err, result) {
   if (err) console.log(err);
   console.log("Connected!");
 });
+
 
 async function generateEventQuery(result) {
   let block_number = 0;
@@ -236,6 +256,22 @@ async function generateEventQuery(result) {
   }
   return { csql: csql_arr, sql: sql_arr, result };
 }
+app.post("/api/income", (req, res) => {
+  user = req.body.user;
+  conn.query(
+    `Select * From userincome Where receiver='${user}'`,
+    function (err, result) {
+      if (err) res.json({ status: 10, err: err });
+      console.log("Retsuyh", result);
+      if (result) {
+        return res.status(200).json({
+          status: 1,
+          result: result,
+        });
+      }
+    }
+  );
+});
 
 app.post("/api/user", (req, res) => {
   user = req.body.user;
@@ -328,16 +364,16 @@ setInterval(() => {
         contract
           .getPastEvents({
             fromBlock: Number(result[0].latest_block),
-            toBlock: Number(result[0].latest_block) + 1000,
+            toBlock: Number(result[0].latest_block) + 4000,
           })
           .then(async (events) => {
             let resu = await generateEventQuery(events);
             if (
-              parseInt(result[0].latest_block) + 1000 <
+              parseInt(result[0].latest_block) + 4000 <
               parseInt(current_block)
             ) {
               conn.query(
-                `UPDATE eventBlock SET latest_block ='${parseInt(result[0].latest_block) + 1000
+                `UPDATE eventBlock SET latest_block ='${parseInt(result[0].latest_block) + 4000
                 }'`,
                 function (err, result) {
                   if (err) throw err;
