@@ -1,7 +1,8 @@
 
 import {CONTRACT_ADDRESS,CONTRACT_ABI} from './config';
 import getWeb3 from "./getWeb";
-const url = "http://node.bdltcommunity.io/api";
+// const url = "http://node.bdltcommunity.io/api";
+const url = "http://localhost:8080/api";
 
 export const onConnect = () => {
   return new Promise(async (resolve,reject)=>{
