@@ -948,10 +948,10 @@ export default function Home() {
                 }}
               >
                 <a
-                  className="grad_btn px-0 text-light"
+                  style={{ borderRadius: "10px" }}
+                  className="grad_btn px-3 text-light mx-2"
                   href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`}
                   target="_blank"
-                  style={{ borderRadius: "10px" }}
                 >
                   <img
                     src="/icon_lg.png"
