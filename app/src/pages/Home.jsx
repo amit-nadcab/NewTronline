@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { BsTelegram } from "react-icons/bs";
+import { CONTRACT_ADDRESS } from "../HelperFunction/config"
 
 import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect } from "../HelperFunction/script";
 
@@ -511,7 +512,8 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">BDLT CROWD FUNDING PROGRAM </h1> <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5>
+            <h1 className="tirw">BDLT COMMUNITY DEVELOPMENT PROGRAM</h1>
+            {/* <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5> */}
             <p>
               {" "}
               World First Decentralized Program on BDLT Blockchain. All Funds
@@ -883,7 +885,7 @@ export default function Home() {
                 <input
                   className="word-break refinpt"
                   ref={reflink}
-                  defaultValue={`http://demo.bdltcommunity.io/?ref_id=${ref_id}`}
+                  defaultValue={`http://bdltcommunity.io/?ref_id=${ref_id}`}
                   style={{
                     background: "transparent",
                     color: "white",
@@ -947,7 +949,7 @@ export default function Home() {
               >
                 <a
                   className="grad_btn px-0 text-light"
-                  // href="https://tronscan.org/#/contract/TXW3Zht4JHynh7n9kwFZAM7jPwRkk3kqcJ"
+                  href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`}
                   target="_blank"
                   style={{ borderRadius: "10px" }}
                 >
@@ -984,7 +986,7 @@ export default function Home() {
                     <BsTelegram size={24} color="white" />
                   </span>
                   <a
-                    // href="https://t.me/Tronline_Admin"
+                    href="https://t.me/+7tHV4QkwDeEyOGM9"
                     className="text-light"
                     target="_blank"
                   >
