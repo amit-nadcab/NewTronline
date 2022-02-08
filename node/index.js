@@ -272,6 +272,21 @@ app.post("/api/income", (req, res) => {
     }
   );
 });
+app.post("/api/withdraw", (req, res) => {
+  user = req.body.user;
+  conn.query(
+    `Select * From withdrawn Where user ='${user}'`,
+    function (err, result) {
+      if (err) res.json({ status: 10, err: err });
+      if (result) {
+        return res.status(200).json({
+          status: 1,
+          result: result,
+        });
+      }
+    }
+  );
+});
 
 app.post("/api/user", (req, res) => {
   user = req.body.user;

@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 
 import { BsTelegram } from "react-icons/bs";
 
-import { getIncome, getTeam, getUserInfo, onConnect } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -14,13 +14,13 @@ export default function Home() {
   const [balance, setBalance] = useState(0);
   const [team, setTeam] = useState([]);
   const [income, setIncome] = useState([]);
+  const [withdraw, setWithdraw] = useState([]);
   const [contract, setContract] = useState({});
   const [joinAmount, setjoinAmount] = useState(0);
   const [ref_id, setref_id] = useState(0);
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
   const [joiningPackage, setJoiningPackage] = useState(0);
-  const [withdraw, setWithdraw] = useState(0);
   const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
   const [roi, setRoi] = useState(0);
@@ -105,15 +105,7 @@ export default function Home() {
         color: "rgba(63, 195, 128, 0.9)",
       },
     },
-    {
-      name: "User Wallet Address",
-      selector: (row) => row.receiver,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
+
     {
       name: "Sender",
       selector: (row) => row.sender,
@@ -144,6 +136,99 @@ export default function Home() {
     {
       name: "Timestamp",
       selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+
+    {
+      name: "Transaction Id",
+      selector: (row) => (
+        <a
+          href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
+          target="_blank"
+        >
+          {row.transaction_id}
+        </a>
+      ),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+  ];
+
+  const withdrawcolumn = [
+    {
+      name: "Level",
+      selector: (row) => row.level,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+
+    {
+      name: "User Id",
+      selector: (row) => row.id,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+
+    {
+      name: "Sender",
+      selector: (row) => row.sender,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Amount",
+      selector: (row) => (row.amount) / 1e18,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Income Type",
+      selector: (row) => row._for,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+    {
+      name: "Timestamp",
+      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "black",
+      },
+    },
+
+    {
+      name: "Transaction Id",
+      selector: (row) => (
+        <a
+          href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
+          target="_blank"
+        >
+          {row.transaction_id}
+        </a>
+      ),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -257,6 +342,14 @@ export default function Home() {
       getIncome(wallet_address).then((ss) => {
         if (ss) {
           setIncome(ss.result);
+        }
+      }).catch((e) => {
+        console.log(e);
+      });
+      getWithdraw(wallet_address).then((ss) => {
+        if (ss) {
+          console.log("DATA :: ", ss);
+          setWithdraw(ss.result);
         }
       }).catch((e) => {
         console.log(e);
@@ -735,6 +828,35 @@ export default function Home() {
                   data={
                     income.length !== 0
                       ? income
+                      : []
+                  }
+                  pagination
+                  paginationPerPage={4}
+                  progressPending={false}
+                  customStyles={customStyles}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section className="pb_50">
+        <div className="container">
+          <div className="all_heading text-center">
+            <h2>
+              <span>Withdrawal History</span>
+            </h2>
+          </div>
+          <div className="sm_container">
+            <div className="table_inner">
+              <div className="table-responsive gridtable">
+                <DataTable
+                  columns={withdrawcolumn}
+                  data={
+                    withdraw.length > 0
+                      ? withdraw
                       : []
                   }
                   pagination

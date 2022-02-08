@@ -59,6 +59,18 @@ export const getIncome = (user) => {
   }).then(d => d.json())
     .catch(e => e)
 }
+export const getWithdraw = (user) => {
+  return fetch(`${url}/withdraw`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
 
 export const getTeam = (user) => {
   return fetch(`http://localhost/bdlt_api/team.php`, {
