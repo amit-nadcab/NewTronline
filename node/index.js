@@ -1,12 +1,13 @@
 const Web3 = require("web3");
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const app = express();
 const mysql = require('mysql');
-
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 app.use(express.json());
 app.use(cors());
-
+console.log(process.env.privatekey);
 const web3 = new Web3("https://rpc01.bdltscan.io/");
 
 const dexABI = [{ "type": "event", "name": "PriceChanged", "inputs": [{ "type": "uint256", "name": "newPrice", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Registration", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": true }, { "type": "address", "name": "referrer", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "userId", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "referrerId", "internalType": "uint256", "indexed": false }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "RoyalityIncome", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "RoyaltyDeduction", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "UserIncome", "inputs": [{ "type": "address", "name": "sender", "internalType": "address", "indexed": false }, { "type": "address", "name": "receiver", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }, { "type": "uint8", "name": "level", "internalType": "uint8", "indexed": false }, { "type": "string", "name": "_for", "internalType": "string", "indexed": false }], "anonymous": false }, { "type": "event", "name": "Withdrawn", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "amount", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "ChangePrice", "inputs": [{ "type": "uint256", "name": "bdltInUsd", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "SendRoyalityIncome", "inputs": [{ "type": "address", "name": "user", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "TIME_STEP", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "dev", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getUserDividends", "inputs": [{ "type": "address", "name": "userAddress", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "idToAddress", "inputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "initialize", "inputs": [{ "type": "address", "name": "_ownerAddress", "internalType": "address" }, { "type": "address", "name": "_devwallet", "internalType": "address" }, { "type": "uint256", "name": "bdltInUsd", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "isUserExists", "inputs": [{ "type": "address", "name": "user", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "joiningPackage", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "lastUserId", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "owner", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "price", "inputs": [] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "registrationExt", "inputs": [{ "type": "address", "name": "referrerAddress", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "id", "internalType": "uint256" }, { "type": "address", "name": "referrer", "internalType": "address" }, { "type": "uint256", "name": "partnersCount", "internalType": "uint256" }, { "type": "uint256", "name": "levelIncome", "internalType": "uint256" }, { "type": "uint256", "name": "sponcerIncome", "internalType": "uint256" }, { "type": "uint256", "name": "checkpoint", "internalType": "uint256" }, { "type": "uint256", "name": "start", "internalType": "uint256" }, { "type": "uint256", "name": "joiningAmt", "internalType": "uint256" }, { "type": "uint256", "name": "end", "internalType": "uint256" }, { "type": "uint256", "name": "withdrawn", "internalType": "uint256" }], "name": "users", "inputs": [{ "type": "address", "name": "", "internalType": "address" }] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "withdraw", "inputs": [] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "withdrawETH", "inputs": [{ "type": "address", "name": "adr", "internalType": "address payable" }, { "type": "uint256", "name": "amt", "internalType": "uint256" }] }, { "type": "receive", "stateMutability": "payable" }];
@@ -14,6 +15,12 @@ const dexABI = [{ "type": "event", "name": "PriceChanged", "inputs": [{ "type": 
 const contract_address = "0x3a3211781Dd84B161a841c2B5abF30E788166601";
 const contract = new web3.eth.Contract(dexABI, contract_address);
 
+// const conn = mysql.createConnection({
+//   host: "184.168.111.174",
+//   user: "bdlt_admin",
+//   password: "Nadcab@1234",
+//   database: "bdlt",
+// });
 const conn = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -21,9 +28,26 @@ const conn = mysql.createConnection({
   database: "bdlt",
 });
 
-
 function round(number) {
   return Math.round(number * 1000) / 1000;
+}
+
+function toFixed(x) {
+  if (Math.abs(x) < 1.0) {
+    var e = parseInt(x.toString().split("e-")[1]);
+    if (e) {
+      x *= Math.pow(10, e - 1);
+      x = "0." + new Array(e).join("0") + x.toString().substring(2);
+    }
+  } else {
+    var e = parseInt(x.toString().split("+")[1]);
+    if (e > 20) {
+      e -= 20;
+      x /= Math.pow(10, e);
+      x += new Array(e + 1).join("0");
+    }
+  }
+  return String(x);
 }
 
 function getBlocktoTime(block) {
@@ -102,6 +126,7 @@ function calcLevel(level) {
     );
   })
 }
+
 function directLevel(id) {
   return new Promise((resolve, reject) => {
     console.log(level);
@@ -120,12 +145,10 @@ function directLevel(id) {
   })
 }
 
-
 conn.connect(function (err, result) {
   if (err) console.log(err);
   console.log("Connected!");
 });
-
 
 async function generateEventQuery(result) {
   let block_number = 0;
@@ -256,6 +279,7 @@ async function generateEventQuery(result) {
   }
   return { csql: csql_arr, sql: sql_arr, result };
 }
+
 app.post("/api/income", (req, res) => {
   user = req.body.user;
   conn.query(
@@ -272,6 +296,7 @@ app.post("/api/income", (req, res) => {
     }
   );
 });
+
 app.post("/api/withdraw", (req, res) => {
   user = req.body.user;
   conn.query(
@@ -336,7 +361,6 @@ app.get("/api/send-royalty-income", async (req, res) => {
   console.log("Resposne :: ", response.result)
 });
 
-
 app.post("/api/direct-sponser", checkUser, (req, res) => {
   user = req.body.user;
   console.log(user);
@@ -352,8 +376,7 @@ app.post("/api/direct-sponser", checkUser, (req, res) => {
   );
 });
 
-
-app.post("/api/withdraw-history", checkUser, (req, res) => {
+app.post("/api/withdraw-history", (req, res) => {
   user = req.body.user;
   conn.query(
     `Select * from Withdraw where user='${user}'`,
@@ -363,6 +386,99 @@ app.post("/api/withdraw-history", checkUser, (req, res) => {
         status: 1,
         result: result,
       });
+    }
+  );
+});
+
+app.post("/api/royaltyWithdraw", async (req, res) => {
+  let user = req.body.user;
+  console.log("User Exist :: ", user)
+  const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+
+  let provider = new HDWalletProvider(
+    process.env.privatekey,
+    "https://rpc01.bdltscan.io/"
+  );
+  web3.setProvider(provider);
+  const accounts = await web3.eth.getAccounts();
+  web3.eth.accounts.wallet.add(process.env.privatekey);
+  contract.setProvider(provider);
+  conn.query(
+    `Select * From Registration Where user='${user}'`,
+    function (err, result) {
+      let total = result[0].royalty_wallet;
+      console.log("total:::", total);
+      if (true) {
+        if (result[0].locked != "1") {
+          if (total > 0) {
+            conn.query(
+              `Update Registration SET locked='1' where user='${user}'`,
+              async function (err, r) {
+                if (err) console.log(err);
+                const gasPrice = await web3.eth.getGasPrice();
+                let gas = await contract.methods
+                  .SendRoyalityIncome(user, toFixed(total * 1e18))
+                  .estimateGas({ value: 0, from: accounts[0] });
+                contract.methods
+                  .SendRoyalityIncome(user, toFixed(total * 1e18))
+                  .send({
+                    from: accounts[0],
+                    value: 0,
+                    gasPrice: gasPrice,
+                    gas: gas,
+                  })
+                  .then((d) => {
+                    console.log(d);
+                    conn.query(
+                      `INSERT INTO royalty_withdraw(user, ip_addr, withdraw_amt, transaction_id) VALUES ('${user}','${ip}','${total}', "Hey.....",)`,
+                      function (err, re) {
+                        if (err) console.log(err);
+                        console.log(re);
+                        if (re) {
+                          conn.query(
+                            `Update Registration SET locked='0', royalty_wallet='0' where user='${user}'`,
+                            function (err, re) {
+                              if (err) console.log(err);
+                              console.log(re);
+                              return res.json({
+                                status: 1,
+                                msg: "Successfully withdraw",
+                              });
+                            }
+                          );
+                        }
+                      }
+                    );
+
+                  })
+                  .catch((e) => {
+                    console.log("Error::", e);
+                    return res.json({
+                      status: 0,
+                      msg: e,
+                    });
+                  });
+              }
+            );
+          } else {
+            return res.json({
+              status: 0,
+              msg: "Your balance too low",
+            });
+          }
+        } else {
+          console.log("Already withdrawal processing");
+          return res.json({
+            status: 0,
+            msg: "Already withdrawal processing",
+          });
+        }
+      } else {
+        res.json({
+          status: 0,
+          msg: "Cropping Limit Reached. Please Upgrade Package",
+        });
+      }
     }
   );
 });

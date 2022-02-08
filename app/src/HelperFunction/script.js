@@ -60,7 +60,19 @@ export const getIncome = (user) => {
     .catch(e => e)
 }
 export const getWithdraw = (user) => {
-  return fetch(`${url}/withdraw`, {
+  return fetch(`${url}/withdraw-history`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
+export const royaltyWithdraw = (user) => {
+  return fetch(`${url}/royaltyWithdraw`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

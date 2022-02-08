@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { BsTelegram } from "react-icons/bs";
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
 
-import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -443,6 +443,20 @@ export default function Home() {
     }
   }
 
+  async function onRoyaltyWithdraw() {
+    setspin3("spinner-border spinner-border-sm");
+    royaltyWithdraw(wallet_address)
+      .then((d) => {
+        console.log("Data:", d);
+        setspin3("");
+        setReflect(!reflect);
+      })
+      .catch((e) => {
+        console.log("Error:: ", e);
+        setspin3("");
+        setReflect(!reflect);
+      });
+  }
   async function onWithdraw() {
     setspin3("spinner-border spinner-border-sm");
     contract?.methods
@@ -772,11 +786,19 @@ export default function Home() {
           </div>
           {/* fourth row*/}
           <div className="row cus_row">
-            <div className="offset-md-3 col-md-6 col-sm-6 col-lg-6">
+            <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Withdraw Roi Income</h4>
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
+                </button>
+              </div>
+            </div>
+            <div className="col-md-6 col-sm-6 col-lg-6">
+              <div className="Personal_Details_inner Personal_bg">
+                <h4>Withdraw Royalty Income</h4>
+                <button className="grad_btn my-2" onClick={onRoyaltyWithdraw}>
+                  Withdraw Royalty
                 </button>
               </div>
             </div>
@@ -798,7 +820,7 @@ export default function Home() {
                 <DataTable
                   columns={teamcolumn}
                   data={
-                    team.length !== 0
+                    team.length > 0
                       ? team
                       : []
                   }
@@ -828,7 +850,7 @@ export default function Home() {
                 <DataTable
                   columns={incomecolumn}
                   data={
-                    income.length !== 0
+                    income.length > 0
                       ? income
                       : []
                   }
