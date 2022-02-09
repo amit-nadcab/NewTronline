@@ -1,8 +1,8 @@
 
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config';
 import getWeb3 from "./getWeb";
-// const url = "http://node.bdltcommunity.io/api";
-const url = "http://localhost:8080/api";
+const url = "https://node.bdltcommunity.io/api";
+// const url = "http://localhost:8080/api";
 
 export const onConnect = () => {
   return new Promise(async (resolve, reject) => {
@@ -83,9 +83,21 @@ export const royaltyWithdraw = (user) => {
   }).then(d => d.json())
     .catch(e => e)
 }
+export const userIdByWallet = (user) => {
+  return fetch(`${url}/getUserIdByWallet`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
 
 export const getTeam = (user) => {
-  return fetch(`http://localhost/bdlt_api/team.php`, {
+  return fetch(`https://node.bdltcommunity.io/bdlt_api/team.php`, {
     method: "POST",
     body: JSON.stringify({
       user: user,

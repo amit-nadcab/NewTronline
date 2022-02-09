@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { BsTelegram } from "react-icons/bs";
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
 
-import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -24,6 +24,7 @@ export default function Home() {
   const [joiningPackage, setJoiningPackage] = useState(0);
   const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
+  const [royaltyWallet, setRoyaltyWallet] = useState(0);
   const [roi, setRoi] = useState(0);
   const [direct_sponcer, setDirectSponcer] = useState(0);
   const [reflect, setReflect] = useState(true);
@@ -32,7 +33,14 @@ export default function Home() {
   const [spin2, setspin2] = useState("");
   const [spin3, setspin3] = useState("");
   const [vsi, setvsi] = useState(0);
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   const [disable, setdisable] = useState(false);
+  const [viewmode, setViewMode] = useState(1);
+  const [viewmodeflag, setViewModeFlag] = useState(0);
 
   const ref_addr = window.location.href;
   const reflink = useRef();
@@ -40,11 +48,13 @@ export default function Home() {
   function round(number) {
     return Math.round(number * 1000) / 1000;
   }
+
   useEffect(() => {
     console.log("Referrer Id", ref_addr);
     let nnnnn = ref_addr.split("?ref_id=");
     setref_id1(nnnnn[1]);
   }, []);
+
   const teamcolumn = [
     {
       name: "Level",
@@ -321,6 +331,8 @@ export default function Home() {
                 : 0
             );
             setRefferer(d.data.referrer);
+            console.log("Royalty Wallet :: ", d.result[0].royalty_wallet)
+            setRoyaltyWallet(d.result[0].royalty_wallet);
             setjoinAmount(d.data.joiningAmt);
             setDirectSponcer(d.data.partnersCount);
             setWithdraw(
@@ -396,8 +408,8 @@ export default function Home() {
                     .registrationExt(d)
                     .send({
                       from: wallet_address,
-                      // value: joiningPackage,
-                      value: 0,
+                      value: joiningPackage,
+                      // value: 0,
                     })
                     .then((d) => {
                       setspin("");
@@ -444,28 +456,47 @@ export default function Home() {
   }
 
   async function onRoyaltyWithdraw() {
-    setspin3("spinner-border spinner-border-sm");
-    royaltyWithdraw(wallet_address)
-      .then((d) => {
-        console.log("Data:", d);
-        setspin3("");
-        setReflect(!reflect);
-      })
-      .catch((e) => {
-        console.log("Error:: ", e);
-        setspin3("");
-        setReflect(!reflect);
-      });
+    if (viewmodeflag) {
+      NotificationManager.info(
+        "Withdraw is not available in view mode!"
+      );
+    } else {
+      setspin3("spinner-border spinner-border-sm");
+      royaltyWithdraw(wallet_address)
+        .then((d) => {
+          if (d.status) {
+            NotificationManager.info(
+              d.result
+            );
+          }
+          console.log("Data:", d);
+          setspin3("");
+          setReflect(!reflect);
+        })
+        .catch((e) => {
+          console.log("Error:: ", e);
+          setspin3("");
+          setReflect(!reflect);
+        });
+    }
   }
-  async function onWithdraw() {
+
+  async function openViewMode(viewmode) {
+    const close = document.getElementById("closeModal");
     setspin3("spinner-border spinner-border-sm");
-    contract?.methods
-      ?.withdraw()
-      .send({ from: wallet_address, value: 0 })
+    userIdByWallet(viewmode)
       .then((d) => {
-        console.log("Data:", d);
-        setspin3("");
-        setReflect(!reflect);
+        if (d.status) {
+          close.click();
+          setWalletAddress(d.result[0].user);
+          setViewModeFlag(1);
+          setspin3("");
+          setReflect(!reflect);
+        } else {
+          NotificationManager.info(
+            "No ID found!"
+          );
+        }
       })
       .catch((e) => {
         console.log("Error:: ", e);
@@ -474,8 +505,55 @@ export default function Home() {
       });
   }
 
+  async function exitViewMode() {
+    window.location.reload(false);
+  }
+  async function onWithdraw() {
+    if (viewmodeflag) {
+      NotificationManager.info(
+        "Withdraw is not available in view mode!"
+      );
+    } else {
+      setspin3("spinner-border spinner-border-sm");
+      contract?.methods
+        ?.withdraw()
+        .send({ from: wallet_address, value: 0 })
+        .then((d) => {
+          console.log("Data:", d);
+          setspin3("");
+          setReflect(!reflect);
+        })
+        .catch((e) => {
+          console.log("Error:: ", e);
+          setspin3("");
+          setReflect(!reflect);
+        });
+    }
+  }
+
   return (
     <>
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title text-dark" id="exampleModalLabel">To View Enter Account ID</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3 row">
+                <div class="col-sm-12">
+                  <input type="tel" onChange={(e) => { setViewMode(e.target.value) }} class="form-control" id="inputPassword" value={1} />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeModal">Close</button>
+              <button type="button" class="btn btn-primary" onClick={() => openViewMode(viewmode)}>View</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container text-center mt-4">
         <div className="row">
           <div
@@ -494,14 +572,11 @@ export default function Home() {
                 className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
               >
-                {/* <div className="form-group"> */}
-                <Link
-                  className="grad_btn btn-block text-light my-2"
-                  style={{ padding: "10px 55px" }}
-                  to="/accountsummary"
-                >
-                  Account Summary
-                </Link>
+                {viewmodeflag === 0 ? (<button type="button" style={{ padding: "10px 55px" }} className="grad_btn btn-block text-light my-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                  View Mode
+                </button>) : (<button type="button" style={{ padding: "10px 55px" }} className="grad_btn btn-block text-light my-2" onClick={() => exitViewMode()}>
+                  Exit View Mode
+                </button>)}
 
                 {/* </div> */}
               </div>
@@ -716,7 +791,65 @@ export default function Home() {
           </div>
         </section>
       ) : (
-        <></>
+        <section className="pt_50 pb_50">
+          <div
+            className="row"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          ></div>
+
+          <div className="container">
+            <div className="all_heading text-center">
+              {/* <h2>
+                <span></span>&nbsp;
+              </h2> */}
+              <div
+                className="small_heading my-3"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <h6>
+                  Your Wallet address -{" "}
+                  <span style={{ fontSize: "15px" }}>
+                    {wallet_address
+                      ? wallet_address.substr(0, 10) +
+                      "......." +
+                      wallet_address.substr(25)
+                      : "Press Refresh for Wallet Address if Metamask is connected"}
+                  </span>{" "}
+                </h6>
+                {viewmodeflag == 0 ? (
+                  <button
+                    className="grad_btn btn-block mx-4"
+                    style={{ padding: "10px 15px" }}
+                    onClick={() => {
+                      onConnect()
+                        .then((d) => {
+                          console.log(d);
+                          setBalance(round(d?.balance));
+                          setContract(d?.contract);
+                          setWalletAddress(d?.userAddress);
+                          setJoiningPackage(d?.joiningPackage);
+                        })
+                        .catch((e) => console.log(e));
+                    }}
+                  >
+                    Connect Wallet
+                  </button>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       <section className="pb_50">
@@ -774,13 +907,13 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>My Royalty Income</h4>
-                <h5>{0} BDLT</h5>
+                <h5>{royaltyWallet ? royaltyWallet : 0} BDLT</h5>
               </div>
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
                 <h4>My Total Withdrawal</h4>
-                <h5>{withdraw} BDLT</h5>
+                <h5>{withdraw ? withdraw : 0} BDLT</h5>
               </div>
             </div>
           </div>
