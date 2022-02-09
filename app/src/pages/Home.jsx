@@ -15,6 +15,7 @@ export default function Home() {
   const [balance, setBalance] = useState(0);
   const [team, setTeam] = useState([]);
   const [income, setIncome] = useState([]);
+  const [withdrawalAmt,setWithdrawAmt] =useState(0);
   const [withdraw, setWithdraw] = useState([]);
   const [contract, setContract] = useState({});
   const [joinAmount, setjoinAmount] = useState(0);
@@ -137,7 +138,7 @@ export default function Home() {
     },
     {
       name: "Income Type",
-      selector: (row) => row._for,
+      selector: (row) => row._for=="direct_sponcer"?"Sponsor Income":"Level Income",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -146,7 +147,7 @@ export default function Home() {
     },
     {
       name: "Timestamp",
-      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      selector: (row) => new Date(Number(row.block_timestamp)*1000).toLocaleString(),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -174,28 +175,8 @@ export default function Home() {
 
   const withdrawcolumn = [
     {
-      name: "Level",
-      selector: (row) => row.level,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-
-    {
-      name: "User Id",
-      selector: (row) => row.id,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-
-    {
-      name: "Sender",
-      selector: (row) => row.sender,
+      name: "SR No.",
+      selector: (row,i) => i+1,
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -204,16 +185,7 @@ export default function Home() {
     },
     {
       name: "Amount",
-      selector: (row) => (row.amount) / 1e18,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
-    {
-      name: "Income Type",
-      selector: (row) => row._for,
+      selector: (row) => Number(row.amount) / 1e18,
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -222,7 +194,7 @@ export default function Home() {
     },
     {
       name: "Timestamp",
-      selector: (row) => new Date(row.block_timestamp).toLocaleString(),
+      selector: (row) => new Date(Number(row.block_timestamp)*1000).toLocaleString(),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -335,7 +307,7 @@ export default function Home() {
             setRoyaltyWallet(d.result[0].royalty_wallet);
             setjoinAmount(d.data.joiningAmt);
             setDirectSponcer(d.data.partnersCount);
-            setWithdraw(
+            setWithdrawAmt(
               d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) : 0
             );
           } else {
@@ -913,7 +885,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
                 <h4>My Total Withdrawal</h4>
-                <h5>{withdraw ? withdraw : 0} BDLT</h5>
+                <h5>{withdrawalAmt ? withdrawalAmt : 0} BDLT</h5>
               </div>
             </div>
           </div>
@@ -1011,11 +983,7 @@ export default function Home() {
               <div className="table-responsive gridtable">
                 <DataTable
                   columns={withdrawcolumn}
-                  data={
-                    withdraw.length > 0
-                      ? withdraw
-                      : []
-                  }
+                  data={withdraw}
                   pagination
                   paginationPerPage={4}
                   progressPending={false}
