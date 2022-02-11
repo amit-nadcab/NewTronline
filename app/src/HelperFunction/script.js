@@ -33,6 +33,11 @@ export const onConnect = () => {
   })
 };
 
+export const globalStat = ()=>{
+  return fetch(`${url}/global-stats`)
+  .then(d=>d.json())
+  .catch(e=>console.log(e))
+}
 
 export const getUserInfo = (user) => {
   return fetch(`${url}/user`, {

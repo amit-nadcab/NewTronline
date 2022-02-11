@@ -2,12 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { NotificationManager } from "react-notifications";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-
-import { BsTelegram } from "react-icons/bs";
+import { BsTelegram,BsWhatsapp,BsFacebook, BsInstagram, BsInbox } from "react-icons/bs";
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
-
-import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet ,globalStat} from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -23,7 +20,6 @@ export default function Home() {
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
   const [joiningPackage, setJoiningPackage] = useState(0);
-  const [_package, setPackage] = useState(0);
   const [refferer, setRefferer] = useState("0x00");
   const [royaltyWallet, setRoyaltyWallet] = useState(0);
   const [roi, setRoi] = useState(0);
@@ -35,13 +31,15 @@ export default function Home() {
   const [spin3, setspin3] = useState("");
   const [vsi, setvsi] = useState(0);
   const [show, setShow] = useState(false);
-
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
+  const [total_member,setTotalmember] = useState(0);
+  const [total_investment,setTotalInv] =useState(0);
+  const [total_withdraw,setTotalWithdraw] =useState(0);
+  const [price,setPrice] = useState(0); 
+  const [avlIncome,setAvlIncome] =useState(0);
   const [disable, setdisable] = useState(false);
   const [viewmode, setViewMode] = useState(1);
   const [viewmodeflag, setViewModeFlag] = useState(0);
+  const [smartBalance,setSmartBalance] =useState(0);
 
   const ref_addr = window.location.href;
   const reflink = useRef();
@@ -54,6 +52,14 @@ export default function Home() {
     console.log("Referrer Id", ref_addr);
     let nnnnn = ref_addr.split("?ref_id=");
     setref_id1(nnnnn[1]);
+    globalStat().then(d=>{
+      console.log("global Data",d);
+      setTotalmember(d.result.totalUser);
+      setTotalInv(d.result.totalPayout);
+      setPrice(d?.price??0);
+      setSmartBalance(d?.contract_balance);
+      setTotalWithdraw(d?.withdraw??0);
+    }).catch(e=>console.log(e));
   }, []);
 
   const teamcolumn = [
@@ -308,8 +314,9 @@ export default function Home() {
             setjoinAmount(d.data.joiningAmt);
             setDirectSponcer(d.data.partnersCount);
             setWithdrawAmt(
-              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) : 0
+              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18)+d.withdraw : 0
             );
+            console.log((Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000)+Number(d.result[0].royalty_wallet))
           } else {
             console.log("Error:::", d.err);
           }
@@ -505,27 +512,6 @@ export default function Home() {
 
   return (
     <>
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title text-dark" id="exampleModalLabel">To View Enter Account ID</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3 row">
-                <div class="col-sm-12">
-                  <input type="tel" onChange={(e) => { setViewMode(e.target.value) }} class="form-control" id="inputPassword" value={1} />
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeModal">Close</button>
-              <button type="button" class="btn btn-primary" onClick={() => openViewMode(viewmode)}>View</button>
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="container text-center mt-4">
         <div className="row">
           <div
@@ -544,13 +530,7 @@ export default function Home() {
                 className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
               >
-                {viewmodeflag === 0 ? (<button type="button" style={{ padding: "10px 55px" }} className="grad_btn btn-block text-light my-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                  View Mode
-                </button>) : (<button type="button" style={{ padding: "10px 55px" }} className="grad_btn btn-block text-light my-2" onClick={() => exitViewMode()}>
-                  Exit View Mode
-                </button>)}
-
-                {/* </div> */}
+                
               </div>
               <div
                 className="col-md-6 col-lg-6 col-sm-12 d-flex justify-content-center"
@@ -591,7 +571,56 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+      <section>
+      <div className="container">
+        <div className="row cus_row">
+            <div className="col-md-6 col-sm-6 col-6">
+              <div className="Personal_Details_inner">
+                <h4> Smart Contract Address </h4>
+                <h5>
+                  <a href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`} target={"_blank"} style={{color:"white", textDecoration:"none"}}>{CONTRACT_ADDRESS.substr(0,5)}....{CONTRACT_ADDRESS.substr(-8)}</a></h5>
+              </div>
+            </div>
+      
+            <div className="col-md-6 col-sm-6 col-6">
+              <div className="Personal_Details_inner">
+                <h4>Contract Balance </h4>
+                <h5>{round(smartBalance)} BDLT</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="pb_50">
+        <div className="container">
+        <div className="row cus_row">
+            <div className="col-md-3 col-sm-3 col-6">
+              <div className="Personal_Details_inner">
+                <h4>Total Community Member</h4>
+                <h5>{total_member}+</h5>
+              </div>
+            </div>
+            <div className="col-md-3 col-sm-3 col-6">
+              <div className="Personal_Details_inner">
+                <h4> Total Investment</h4>
+                <h5>{round(total_investment)} BDLT</h5>
+              </div>
+            </div>
+            <div className="col-md-3 col-sm-3 col-6">
+              <div className="Personal_Details_inner">
+                <h4> Total Withdrawal Distributed</h4>
+                <h5>{round(total_withdraw)} BDLT</h5>
+              </div>
+            </div>
+            <div className="col-md-3 col-sm-3 col-6">
+              <div className="Personal_Details_inner">
+                <h4>BDLT Price </h4>
+                <h5>$ {round(price)}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {ref_id == 0 ? (
         <section className="pt_50 pb_50">
           <div
@@ -708,57 +737,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              {/* <div className="row">
-              <>
-               {_package!="1"&&_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
-                  <button
-                    className={`btn btn-light my-2 ${
-                      pkg500 === 50 ? "bg-info" : ""
-                    }`}
-                    style={{ width: "100%" }}
-                    onClick={() => {
-                      setpkg500(50);
-                      setjoinAmount(50);
-                    }}
-                  >
-                    $ 50
-                  </button>
-                </div>:<></>}
-                {_package!="2"? <div className="col-lg-2 col-md-3 col-sm-12">
-                  <button
-                    className={`btn btn-light my-2 ${
-                      pkg500 === 100 ? "bg-info" : ""
-                    }`}
-                    style={{ width: "100%" }}
-                    onClick={() => {
-                      setpkg500(100);
-                      setjoinAmount(100);
-                    }}
-                  >
-                    $ 100
-                  </button>
-                </div>:<></>}
-              </>
-
-              {ref_id!=0 && _package!=2 ? (
-                <div className="col-lg-2 col-md-3 col-sm-12 mt-1">
-                  <button
-                    className="grad_btn btn-block d-flex"
-                    style={{ padding: "10px 95px" }}
-                    onClick={onUpgrade}
-                  >
-                    <span
-                      className={`${spin2} mx-2`}
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
-                    <span style={{ whiteSpace: "nowrap" }}>Upgrade Package</span>
-                  </button>
-                </div>
-              ) : (
-                <></>
-              )}
-            </div> */}
             </div>
           </div>
         </section>
@@ -795,6 +773,12 @@ export default function Home() {
                       "......." +
                       wallet_address.substr(25)
                       : "Press Refresh for Wallet Address if Metamask is connected"}
+                  </span>{" "}
+                </h6>
+                <h6>
+                  Your Wallet Balance -{" "}
+                  <span style={{ fontSize: "15px" }}>
+                    {balance??0} BDLT
                   </span>{" "}
                 </h6>
                 {viewmodeflag == 0 ? (
@@ -840,7 +824,7 @@ export default function Home() {
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
-                <h4>My Directs </h4>
+                <h4> Direct Sponsor </h4>
                 <h5>{direct_sponcer}</h5>
               </div>
             </div>
@@ -857,20 +841,20 @@ export default function Home() {
           <div className="row cus_row">
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
-                <h4>My Direct Income</h4>
+                <h4>Direct Sponsor Income</h4>
                 <h5>{directIncome} BDLT</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
-                <h4>My Level Income</h4>
+                <h4>Level Income</h4>
                 <h5>{levelIncome} BDLT</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
-                <h4>ROI Reward</h4>
-                <h5>{roi} BDLT</h5>
+                <h4>Total Available Income</h4>
+                <h5>{round((roi?Number(roi):0)+(royaltyWallet?Number(royaltyWallet):0))} BDLT</h5>
               </div>
             </div>
           </div>
@@ -878,14 +862,14 @@ export default function Home() {
           <div className="row cus_row">
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
-                <h4>My Royalty Income</h4>
-                <h5>{royaltyWallet ? royaltyWallet : 0} BDLT</h5>
+                <h4>Total Income</h4>
+                <h5>{round((roi?Number(roi):0)+(royaltyWallet?Number(royaltyWallet):0)+withdrawalAmt)} BDLT</h5>
               </div>
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
-                <h4>My Total Withdrawal</h4>
-                <h5>{withdrawalAmt ? withdrawalAmt : 0} BDLT</h5>
+                <h4>Total Withdrawal</h4>
+                <h5>{round(withdrawalAmt ? withdrawalAmt : 0)} BDLT</h5>
               </div>
             </div>
           </div>
@@ -893,7 +877,8 @@ export default function Home() {
           <div className="row cus_row">
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
-                <h4>Withdraw Roi Income</h4>
+                <h4>Roi Income</h4>
+                <h5>{roi} BDLT</h5>
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
                 </button>
@@ -901,7 +886,8 @@ export default function Home() {
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
-                <h4>Withdraw Royalty Income</h4>
+                <h4>Royalty Income</h4>
+                <h5>{royaltyWallet ? royaltyWallet : 0} BDLT</h5>
                 <button className="grad_btn my-2" onClick={onRoyaltyWithdraw}>
                   Withdraw Royalty
                 </button>
@@ -1003,7 +989,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="referal_inner text-center">
-            {ref_id ? (
+            {ref_id!=0 ? (
               <>
                 <input
                   className="word-break refinpt"
@@ -1033,6 +1019,16 @@ export default function Home() {
                 >
                   Copy Link
                 </button>
+                <div className="share-with">
+                    <span>Share With</span>
+                    <div className="py-2">
+                      <a className="p-2 mx-2" href={`https://telegram.me/share/url?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsTelegram size={24} color="white" /></a>
+                      <a className="p-2 mx-2" href={`whatsapp://send?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsWhatsapp size={24} color="white" /></a>
+                    <a className="p-2 mx-2" href={`https://www.facebook.com/sharer/sharer.php?u=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsFacebook size={24} color="white" /></a>
+                    <a className="p-2 mx-2" href={`https://www.instagram.com/?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`}><BsInstagram size={24} color="white" /></a>
+                 
+                    </div>
+                </div>
               </>
             ) : (
               <h5>Join first, then you can get your referral id.</h5>
