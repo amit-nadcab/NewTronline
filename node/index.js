@@ -17,8 +17,8 @@ const contract = new web3.eth.Contract(dexABI, contract_address);
 
 const conn = mysql.createConnection({
   host: "localhost",
-  user: "bdlt_admin",
-  password: "Nadcab@1234",
+  user: "root",
+  password: "",
   database: "bdlt",
 });
 function toFixed(x) {
@@ -77,24 +77,15 @@ function calcRoyalty() {
     d.setMonth(d.getMonth() - 1);
     let date = Math.trunc(d.getTime() / 1000);
     conn.query(
-      `Select sum(amount) as total from Registration where block_timestamp >'${date}'`,
+      `Select sum(amount) as total from registration where block_timestamp >'${date}'`,
       function (err, result) {
         if (err) reject({ status: 0, err: err });
         let amt = 0;
         if (result) {
           amt = result[0].total + amt;
-          conn.query(
-            `Select sum(amount) as total from upgrade where block_timestamp >'${date}'`,
-            function (err, result) {
-              if (err) reject({ status: 0, err: err });
-              if (result) {
-                amt = result[0].total + amt;
-                resolve({
-                  result: amt / 1e18,
-                });
-              }
-            }
-          );
+          resolve({
+            result: amt / 1e18,
+          });
         }
       }
     );
@@ -138,11 +129,11 @@ function directLevel(id) {
   })
 }
 
-
 conn.connect(function (err, result) {
   if (err) console.log(err);
   console.log("Connected!");
 });
+
 
 
 async function generateEventQuery(result) {
@@ -286,7 +277,7 @@ app.post("/api/getUserIdByWallet", (req, res) => {
           status: 1,
           result: result,
         });
-      }else{
+      } else {
         return res.status(200).json({
           status: 0,
           result: [],
@@ -312,11 +303,44 @@ app.post("/api/income", (req, res) => {
   );
 });
 
-app.get("/api/hello", function (req, res) {
-  res.json({ status: 0, msg: "working" });
+
+function getTotalWithdraw() {
+  return new Promise((resolve, reject) => {
+    conn.query("SELECT IFNULL(sum(amount)/1e18,0) as total FROM Withdrawn", function (err, rew) {
+      if (err) reject(err)
+      conn.query("SELECT IFNULL(sum(amount)/1e18,0) as total FROM UserIncome", function (er, rs) {
+        if (er) reject(er)
+        conn.query("SELECT IFNULL(sum(amount)/1e18,0) as total FROM RoyalityIncome", function (ee, sd) {
+          if (ee) reject(ee)
+          resolve(rew[0].total + rs[0].total + sd[0].total);
+        })
+      })
+    })
+  });
+}
+
+app.get("/api/global-stats", function (req, res) {
+  conn.query("Select count(*) as totalUser,IFNULL(sum(amount)/1e18,0) as totalPayout From Registration", function (err, result) {
+    if (err) res.json({ status: 0, msg: err });
+    contract.methods.price().call().then(async d => {
+      let total = await getTotalWithdraw();
+      let contract_balance = await web3.eth.getBalance(contract_address);
+      res.json({
+        status: 1,
+        result: result[0],
+        price: d / 1e18,
+        withdraw: total,
+        contract_balance: contract_balance / 1e18
+      })
+    }).catch(e => {
+      res.json({
+        status: 0,
+        err: e
+      })
+    })
+
+  })
 })
-
-
 
 app.post("/api/royaltyWithdraw", async (req, res) => {
   let user = req.body.user;
@@ -359,28 +383,18 @@ app.post("/api/royaltyWithdraw", async (req, res) => {
                       gas: gas,
                     })
                     .then((d) => {
-                      console.log(d);
+                      console.log("Transaction Details ::", d);
                       conn.query(
-                        `INSERT INTO royalty_withdraw(user, ip_addr, withdraw_amt, transaction_id) VALUES ('${user}','${ip}','${total}', "Hey.....",)`,
+                        `Update Registration SET locked='0', royalty_wallet='0' where user='${user}'`,
                         function (err, re) {
                           if (err) console.log(err);
                           console.log(re);
-                          if (re) {
-                            conn.query(
-                              `Update Registration SET locked='0', royalty_wallet='0' where user='${user}'`,
-                              function (err, re) {
-                                if (err) console.log(err);
-                                console.log(re);
-                                return res.json({
-                                  status: 1,
-                                  msg: "Successfully withdraw",
-                                });
-                              }
-                            );
-                          }
+                          return res.json({
+                            status: 1,
+                            msg: "Withdrawal Successfully! ",
+                          });
                         }
                       );
-
                     })
                     .catch((e) => {
                       console.log("Error::", e);
@@ -444,12 +458,16 @@ app.post("/api/user", (req, res) => {
         `Select * From Registration Where user='${user}'`,
         function (err, result) {
           if (err) res.json({ status: 0, err: err });
-          return res.status(200).json({
-            result: result,
-            status: 1,
-            data: d,
-            roi: roi
-          });
+          conn.query(`SELECT IFNULL(sum(amount)/1e18,0) as total FROM UserIncome where receiver='${user}'`, function (err, result) {
+            if (err) res.json({ status: 0, err: err });
+            return res.status(200).json({
+              result: result,
+              status: 1,
+              data: d,
+              roi: roi,
+              withdraw: result[0].total
+            });
+          })
         }
       );
     }).catch(err => {
@@ -469,22 +487,144 @@ app.post("/api/user", (req, res) => {
 });
 
 app.get("/api/calc-royalty-income", async (req, res) => {
-  let response = await calcRoyalty();
-  return res.json(response);
+  try {
+    let response = await calcRoyalty();
+    return res.json(response);
+  } catch (error) {
+    console.log("Error in Login  API::", error.message)
+    return res.status(400).json({
+      status: false,
+      message: "Something went wrong!",
+    });
+  }
 });
-
 app.post("/api/get-level-access", async (req, res) => {
   let level = req.body.level ? req.body.level : 1;
   let response = await calcLevel(level);
   return res.json(response);
 });
 
-app.get("/api/send-royalty-income", async (req, res) => {
-  console.log("Calling Send Royalty Income:: ")
-  let response = await calcRoyalty();
-  console.log("Response in Send Royalty Income:: ", response.result)
-});
+async function royalty_inc_func(id, amt) {
+  return new Promise((resolve, reject) => {
+    conn.query(
+      `Update Registration set royalty_wallet= '${amt}' where id ='${id}'`,
+      function (err, result) {
+        if (err) reject({ status: 0, err: err });
+        if (result) {
+          resolve({
+            result: result,
+          });
+        }
+      }
+    );
+  })
+}
 
+
+
+async function getSiteData(req, res) {
+  try {
+    await SiteData.find({}).then((result) => {
+      res.status(200).send({
+        data: result,
+      });
+    })
+      .catch((error) => {
+        res.status(400).send({
+          message: error.message,
+        });
+      });
+  }
+  catch (error) {
+    console.log("Error in getBlockedUsersetails!", error.message);
+    return res.status(400).json({
+      error: error.message,
+    });
+  }
+}
+app.get("/api/send-royalty-income", async (req, res) => {
+  console.log("Calling Send Royalty Income:: ");
+  let date = new Date().getDate();
+  if (date == 1) {
+    let response = await calcRoyalty();
+    let stair7 = await calcLevel(7);
+    if (stair7.result.length > 0) {
+      let royalty_amt_for_stair7 = (response.result * 0.05) / stair7.result.length;
+      let a = stair7.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair7)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair7.result.length)
+    }
+
+
+    let stair8 = await calcLevel(8);
+    if (stair8.result.length > 0) {
+      let royalty_amt_for_stair8 = (response.result * 0.04) / stair8.result.length;
+      let a = stair8.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair8)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair8.result.length)
+    }
+
+
+    let stair9 = await calcLevel(9);
+    if (stair9.result.length > 0) {
+      let royalty_amt_for_stair9 = (response.result * 0.03) / stair9.result.length;
+      let a = stair9.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair9)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair9.result.length)
+    }
+
+
+    let stair10 = await calcLevel(10);
+    if (stair10.result.length > 0) {
+      let royalty_amt_for_stair10 = (response.result * 0.02) / stair10.result.length;
+      let a = stair10.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair10)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair10.result.length)
+    }
+
+
+    let stair11 = await calcLevel(11);
+    if (stair11.result.length > 0) {
+      let royalty_amt_for_stair11 = (response.result * 0.01) / stair11.result.length;
+      let a = stair11.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair11)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair11.result.length)
+    }
+
+
+    let stair12 = await calcLevel(12);
+    if (stair12.result.length > 0) {
+      let royalty_amt_for_stair12 = (response.result * 0.005) / stair12.result.length;
+      let a = stair12.result.map(async (it) => {
+        royalty_inc_func(it.id, royalty_amt_for_stair12)
+      })
+      Promise.all(a);
+    } else {
+      console.log("No value :: ", stair12.result.length)
+    }
+    return res.json(response.result);
+  } else {
+    return res.json("False");
+  }
+
+
+
+});
 
 app.post("/api/direct-sponser", checkUser, (req, res) => {
   user = req.body.user;
@@ -500,7 +640,6 @@ app.post("/api/direct-sponser", checkUser, (req, res) => {
     }
   );
 });
-
 
 app.post("/api/withdraw-history", (req, res) => {
   user = req.body.user;

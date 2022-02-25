@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { NotificationManager } from "react-notifications";
 import { useSelector } from "react-redux";
-import { BsTelegram,BsWhatsapp,BsFacebook, BsInstagram, BsInbox } from "react-icons/bs";
+import { BsTelegram, BsWhatsapp, BsFacebook, BsInstagram, } from "react-icons/bs";
+import { FiExternalLink } from "react-icons/fi";
+
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
-import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet ,globalStat} from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet, globalStat } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -12,7 +14,7 @@ export default function Home() {
   const [balance, setBalance] = useState(0);
   const [team, setTeam] = useState([]);
   const [income, setIncome] = useState([]);
-  const [withdrawalAmt,setWithdrawAmt] =useState(0);
+  const [withdrawalAmt, setWithdrawAmt] = useState(0);
   const [withdraw, setWithdraw] = useState([]);
   const [contract, setContract] = useState({});
   const [joinAmount, setjoinAmount] = useState(0);
@@ -31,15 +33,15 @@ export default function Home() {
   const [spin3, setspin3] = useState("");
   const [vsi, setvsi] = useState(0);
   const [show, setShow] = useState(false);
-  const [total_member,setTotalmember] = useState(0);
-  const [total_investment,setTotalInv] =useState(0);
-  const [total_withdraw,setTotalWithdraw] =useState(0);
-  const [price,setPrice] = useState(0); 
-  const [avlIncome,setAvlIncome] =useState(0);
+  const [total_member, setTotalmember] = useState(0);
+  const [total_investment, setTotalInv] = useState(0);
+  const [total_withdraw, setTotalWithdraw] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [avlIncome, setAvlIncome] = useState(0);
   const [disable, setdisable] = useState(false);
   const [viewmode, setViewMode] = useState(1);
   const [viewmodeflag, setViewModeFlag] = useState(0);
-  const [smartBalance,setSmartBalance] =useState(0);
+  const [smartBalance, setSmartBalance] = useState(0);
 
   const ref_addr = window.location.href;
   const reflink = useRef();
@@ -49,22 +51,31 @@ export default function Home() {
   }
 
   useEffect(() => {
+
+    const url_address = window?.frames?.location?.href;
+    // console.log("url address: ", url_address.split("?"), window);
+    const url = url_address ? url_address.split("?")[1] : "";
+    console.log("embue1::", url);
+    if (url && url.length > 21) {
+      setWalletAddress(url);
+    }
+
     console.log("Referrer Id", ref_addr);
     let nnnnn = ref_addr.split("?ref_id=");
     setref_id1(nnnnn[1]);
-    globalStat().then(d=>{
-      console.log("global Data",d);
+    globalStat().then(d => {
+      console.log("global Data", d);
       setTotalmember(d.result.totalUser);
       setTotalInv(d.result.totalPayout);
-      setPrice(d?.price??0);
+      setPrice(d?.price ?? 0);
       setSmartBalance(d?.contract_balance);
-      setTotalWithdraw(d?.withdraw??0);
-    }).catch(e=>console.log(e));
+      setTotalWithdraw(d?.withdraw ?? 0);
+    }).catch(e => console.log(e));
   }, []);
 
   const teamcolumn = [
     {
-      name: "Level",
+      name: "Stair",
       selector: (row) => row.level,
       sortable: true,
       style: {
@@ -84,7 +95,21 @@ export default function Home() {
     },
     {
       name: "Wallet Address",
-      selector: (row) => row.user,
+      selector: (row) => (
+        <a
+          href={`https://explorer.bdltscan.io/address/${row.user}/transactions`}
+          target="_blank"
+          style={{ color: "white", textDecoration: "none" }}
+        >
+          {
+            row.user
+              ? row.user.substr(0, 7) +
+              "......." +
+              row.user.substr(35, 43)
+              : "--"}
+          <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
+        </a>
+      ),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -105,7 +130,7 @@ export default function Home() {
 
   const incomecolumn = [
     {
-      name: "Level",
+      name: "Stair",
       selector: (row) => row.level,
       sortable: true,
       style: {
@@ -113,20 +138,24 @@ export default function Home() {
         color: "rgba(63, 195, 128, 0.9)",
       },
     },
-
-    {
-      name: "User Id",
-      selector: (row) => row.id,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-
     {
       name: "Sender",
-      selector: (row) => row.sender,
+      selector: (row) => (
+        <a
+          href={`https://explorer.bdltscan.io/address/${row.sender}/transactions`}
+          target="_blank"
+          style={{ color: "white", textDecoration: "none" }}
+        >
+          {
+            row.sender
+              ? row.sender.substr(0, 7) +
+              "......." +
+              row.sender.substr(35, 43)
+              : "--"}
+          <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
+
+        </a>
+      ),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -135,7 +164,7 @@ export default function Home() {
     },
     {
       name: "Amount",
-      selector: (row) => (row.amount) / 1e18,
+      selector: (row) => (Number(row.amount) / 1e18).toFixed(2) + " BDLT",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -144,7 +173,7 @@ export default function Home() {
     },
     {
       name: "Income Type",
-      selector: (row) => row._for=="direct_sponcer"?"Sponsor Income":"Level Income",
+      selector: (row) => row._for == "direct_sponcer" ? "Sponsor Income" : "Stair Income",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -153,7 +182,7 @@ export default function Home() {
     },
     {
       name: "Timestamp",
-      selector: (row) => new Date(Number(row.block_timestamp)*1000).toLocaleString(),
+      selector: (row) => new Date(Number(row.block_timestamp) * 1000).toLocaleString(),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -167,8 +196,17 @@ export default function Home() {
         <a
           href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
           target="_blank"
+          style={{ color: "white", textDecoration: "none" }}
+
         >
-          {row.transaction_id}
+          {
+            row.transaction_id
+              ? row.transaction_id.substr(0, 10) +
+              "......." +
+              row.transaction_id.substr((row.transaction_id).length - 10, (row.transaction_id).length)
+              : "--"}
+          <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
+
         </a>
       ),
       sortable: true,
@@ -182,7 +220,7 @@ export default function Home() {
   const withdrawcolumn = [
     {
       name: "SR No.",
-      selector: (row,i) => i+1,
+      selector: (row, i) => i + 1,
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -191,7 +229,7 @@ export default function Home() {
     },
     {
       name: "Amount",
-      selector: (row) => Number(row.amount) / 1e18,
+      selector: (row) => (Number(row.amount) / 1e18).toFixed(2) + " BDLT",
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -200,7 +238,7 @@ export default function Home() {
     },
     {
       name: "Timestamp",
-      selector: (row) => new Date(Number(row.block_timestamp)*1000).toLocaleString(),
+      selector: (row) => new Date(Number(row.block_timestamp) * 1000).toLocaleString(),
       sortable: true,
       style: {
         backgroundColor: "transparent",
@@ -214,8 +252,16 @@ export default function Home() {
         <a
           href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
           target="_blank"
+          style={{ color: "white", textDecoration: "none" }}
         >
-          {row.transaction_id}
+          {
+            row.transaction_id
+              ? row.transaction_id.substr(0, 10) +
+              "......." +
+              row.transaction_id.substr((row.transaction_id).length - 10, (row.transaction_id).length)
+              : "--"}
+          <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
+
         </a>
       ),
       sortable: true,
@@ -314,9 +360,9 @@ export default function Home() {
             setjoinAmount(d.data.joiningAmt);
             setDirectSponcer(d.data.partnersCount);
             setWithdrawAmt(
-              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18)+d.withdraw : 0
+              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) + d.withdraw : 0
             );
-            console.log((Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000)+Number(d.result[0].royalty_wallet))
+            console.log((Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000) + Number(d.result[0].royalty_wallet))
           } else {
             console.log("Error:::", d.err);
           }
@@ -530,7 +576,7 @@ export default function Home() {
                 className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
               >
-                
+
               </div>
               <div
                 className="col-md-6 col-lg-6 col-sm-12 d-flex justify-content-center"
@@ -572,16 +618,15 @@ export default function Home() {
         </div>
       </section>
       <section>
-      <div className="container">
-        <div className="row cus_row">
+        <div className="container">
+          <div className="row cus_row">
             <div className="col-md-6 col-sm-6 col-6">
               <div className="Personal_Details_inner">
                 <h4> Smart Contract Address </h4>
-                <h5>
-                  <a href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`} target={"_blank"} style={{color:"white", textDecoration:"none"}}>{CONTRACT_ADDRESS.substr(0,5)}....{CONTRACT_ADDRESS.substr(-8)}</a></h5>
+                <h5><a href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`} target={"_blank"} style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
               </div>
             </div>
-      
+
             <div className="col-md-6 col-sm-6 col-6">
               <div className="Personal_Details_inner">
                 <h4>Contract Balance </h4>
@@ -593,7 +638,7 @@ export default function Home() {
       </section>
       <section className="pb_50">
         <div className="container">
-        <div className="row cus_row">
+          <div className="row cus_row">
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4>Total Community Member</h4>
@@ -778,7 +823,7 @@ export default function Home() {
                 <h6>
                   Your Wallet Balance -{" "}
                   <span style={{ fontSize: "15px" }}>
-                    {balance??0} BDLT
+                    {balance ?? 0} BDLT
                   </span>{" "}
                 </h6>
                 {viewmodeflag == 0 ? (
@@ -842,19 +887,19 @@ export default function Home() {
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
                 <h4>Direct Sponsor Income</h4>
-                <h5>{directIncome} BDLT</h5>
+                <h5>{(directIncome).toFixed(2)} BDLT</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
-                <h4>Level Income</h4>
-                <h5>{levelIncome} BDLT</h5>
+                <h4>Stair Income</h4>
+                <h5>{(levelIncome).toFixed(2)} BDLT</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
                 <h4>Total Available Income</h4>
-                <h5>{round((roi?Number(roi):0)+(royaltyWallet?Number(royaltyWallet):0))} BDLT</h5>
+                <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))} BDLT</h5>
               </div>
             </div>
           </div>
@@ -863,13 +908,13 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Total Income</h4>
-                <h5>{round((roi?Number(roi):0)+(royaltyWallet?Number(royaltyWallet):0)+withdrawalAmt)} BDLT</h5>
+                <h5>{round((roi ? Number(roi) : 0) + (royaltyWallet ? Number(royaltyWallet) : 0) + Number(withdrawalAmt)).toFixed(2)} BDLT</h5>
               </div>
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
                 <h4>Total Withdrawal</h4>
-                <h5>{round(withdrawalAmt ? withdrawalAmt : 0)} BDLT</h5>
+                <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)} BDLT</h5>
               </div>
             </div>
           </div>
@@ -878,7 +923,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Roi Income</h4>
-                <h5>{roi} BDLT</h5>
+                <h5>{Number(roi).toFixed(2)} BDLT</h5>
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
                 </button>
@@ -911,9 +956,9 @@ export default function Home() {
                 <DataTable
                   columns={teamcolumn}
                   data={
-                    team.length > 0
+                    team ? team.length > 0
                       ? team
-                      : []
+                      : [] : []
                   }
                   pagination
                   paginationPerPage={4}
@@ -941,9 +986,9 @@ export default function Home() {
                 <DataTable
                   columns={incomecolumn}
                   data={
-                    income.length > 0
+                    income ? income.length > 0
                       ? income
-                      : []
+                      : [] : []
                   }
                   pagination
                   paginationPerPage={4}
@@ -969,7 +1014,7 @@ export default function Home() {
               <div className="table-responsive gridtable">
                 <DataTable
                   columns={withdrawcolumn}
-                  data={withdraw}
+                  data={withdraw ? withdraw : []}
                   pagination
                   paginationPerPage={4}
                   progressPending={false}
@@ -989,7 +1034,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="referal_inner text-center">
-            {ref_id!=0 ? (
+            {ref_id != 0 ? (
               <>
                 <input
                   className="word-break refinpt"
@@ -1020,14 +1065,14 @@ export default function Home() {
                   Copy Link
                 </button>
                 <div className="share-with">
-                    <span>Share With</span>
-                    <div className="py-2">
-                      <a className="p-2 mx-2" href={`https://telegram.me/share/url?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsTelegram size={24} color="white" /></a>
-                      <a className="p-2 mx-2" href={`whatsapp://send?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsWhatsapp size={24} color="white" /></a>
+                  <span>Share With</span>
+                  <div className="py-2">
+                    <a className="p-2 mx-2" href={`https://telegram.me/share/url?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsTelegram size={24} color="white" /></a>
+                    <a className="p-2 mx-2" href={`whatsapp://send?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsWhatsapp size={24} color="white" /></a>
                     <a className="p-2 mx-2" href={`https://www.facebook.com/sharer/sharer.php?u=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`} target="_blank"><BsFacebook size={24} color="white" /></a>
                     <a className="p-2 mx-2" href={`https://www.instagram.com/?url=http://bdltcommunity.io/?ref_id=${ref_id}&text= Join BDLT Community`}><BsInstagram size={24} color="white" /></a>
-                 
-                    </div>
+
+                  </div>
                 </div>
               </>
             ) : (
