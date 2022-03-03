@@ -33,10 +33,10 @@ export const onConnect = () => {
   })
 };
 
-export const globalStat = ()=>{
+export const globalStat = () => {
   return fetch(`${url}/global-stats`)
-  .then(d=>d.json())
-  .catch(e=>console.log(e))
+    .then(d => d.json())
+    .catch(e => console.log(e))
 }
 
 export const getUserInfo = (user) => {
@@ -103,6 +103,17 @@ export const userIdByWallet = (user) => {
 
 export const getTeam = (user) => {
   return fetch(`https://node.bdltcommunity.io/bdlt_api/team.php`, {
+    method: "POST",
+    body: JSON.stringify({
+      user: user,
+    })
+  }).then(d => d.json())
+    .catch(e => e)
+}
+
+
+export const getRequiredMembers = (user) => {
+  return fetch(`https://node.bdltcommunity.io/bdlt_api/level_team_member.php`, {
     method: "POST",
     body: JSON.stringify({
       user: user,

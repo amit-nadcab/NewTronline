@@ -6,13 +6,14 @@ import { BsTelegram, BsWhatsapp, BsFacebook, BsInstagram, } from "react-icons/bs
 import { FiExternalLink } from "react-icons/fi";
 
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
-import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet, globalStat } from "../HelperFunction/script";
+import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet, globalStat, getRequiredMembers } from "../HelperFunction/script";
 
 export default function Home() {
   const state = useSelector((state) => state);
   const [wallet_address, setWalletAddress] = useState("");
   const [balance, setBalance] = useState(0);
   const [team, setTeam] = useState([]);
+  const [requiredMember, getRequiredMember] = useState([]);
   const [income, setIncome] = useState([]);
   const [withdrawalAmt, setWithdrawAmt] = useState(0);
   const [withdraw, setWithdraw] = useState([]);
@@ -72,6 +73,42 @@ export default function Home() {
       setTotalWithdraw(d?.withdraw ?? 0);
     }).catch(e => console.log(e));
   }, []);
+  let j = 2;
+  const requiredmembercolumn = [
+    {
+      name: "Level",
+      selector: (row) => row.level,
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Required Members",
+      selector: (row) => row.required_member + " Members",
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Actual Members",
+      selector: (row) => row.total_member + " Members",
+      sortable: true,
+      style: {
+        backgroundColor: "transparent",
+        color: "rgba(63, 195, 128, 0.9)",
+      },
+    },
+    {
+      name: "Target Status",
+      selector: "vip2",
+      sortable: true,
+      cell: data => <span className={`badge text-white ${data.total_member > data.required_member ? 'bg-success' : 'bg-danger'}`}>{(data.total_member > data.required_member ? "Achieved" : "Not Achieved")}</span>
+    },
+  ];
 
   const teamcolumn = [
     {
@@ -293,46 +330,6 @@ export default function Home() {
       },
     },
   };
-  // useEffect(() => {
-  //   if (contract?._address&&wallet_address) {
-  //     contract.methods
-  //       .users(wallet_address)
-  //       .call()
-  //       .then((data) => {
-  //         contract.methods
-  //           .getUserDividends(wallet_address)
-  //           .call()
-  //           .then((roi) => {
-  //             setref_id(data.id);
-  //             setDirectIncome(
-  //               data.sponcerIncome
-  //                 ? round(Number(data.sponcerIncome) / 1e18)
-  //                 : 0
-  //             );
-  //             setLevelIncome(
-  //               data.levelIncome ? round(Number(data.levelIncome) / 1e18) : 0
-  //             );
-  //             setRoi(
-  //               roi
-  //                 ? Math.round((Number(roi) / 1e18) * 1000000000) / 1000000000
-  //                 : 0
-  //             );
-  //             setRefferer(data.referrer);
-  //             setjoinAmount(data.joiningAmt);
-  //             setDirectSponcer(data.partnersCount);
-  //             setWithdraw(
-  //               data.withdrawn ? round(Number(data.withdrawn) / 1e18) : 0
-  //             );
-  //           })
-  //           .catch((e) => {
-  //             console.log(e);
-  //           });
-  //       })
-  //       .catch((e) => {
-  //         console.log(e);
-  //       });
-  //   }
-  // }, [contract,wallet_address,reflect]);
 
   useEffect(() => {
     if (wallet_address) {
@@ -370,6 +367,13 @@ export default function Home() {
         .catch((e) => {
           console.log(e);
         });
+      getRequiredMembers(wallet_address).then((ss) => {
+        if (ss) {
+          getRequiredMember(ss);
+        }
+      }).catch((e) => {
+        console.log(e);
+      });
       getTeam(wallet_address).then((ss) => {
         if (ss) {
           setTeam(ss);
@@ -533,6 +537,7 @@ export default function Home() {
   async function exitViewMode() {
     window.location.reload(false);
   }
+
   async function onWithdraw() {
     if (viewmodeflag) {
       NotificationManager.info(
@@ -607,13 +612,6 @@ export default function Home() {
               are store in Smart Contract and members can withdraw their reward
               directly from Smart contract. Get 200% Return On Investment .
             </p>
-            {/* <p>
-              World's First Single line plan in which all the joining and Vip
-              funds are stored in Smart Contract and members can withdraw their
-              reward directly from Smart contract. 100% Distribution Plan. Now
-              Get Rewarded from 20 people in community. Join VIP clubs and get
-              your daily shares.
-            </p> */}
           </div>
         </div>
       </section>
@@ -647,7 +645,7 @@ export default function Home() {
             </div>
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4> Total Investment</h4>
+                <h4> Total Staking </h4>
                 <h5>{round(total_investment)} BDLT</h5>
               </div>
             </div>
@@ -947,6 +945,34 @@ export default function Home() {
         <div className="container">
           <div className="all_heading text-center">
             <h2>
+              <span>My Team Downline </span>
+            </h2>
+          </div>
+          <div className="sm_container">
+            <div className="table_inner">
+              <div className="table-responsive gridtable">
+                <DataTable
+                  columns={requiredmembercolumn}
+                  data={
+                    requiredMember ? requiredMember.length > 0
+                      ? requiredMember
+                      : [] : []
+                  }
+                  pagination
+                  paginationPerPage={4}
+                  progressPending={false}
+                  customStyles={customStyles}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb_50">
+        <div className="container">
+          <div className="all_heading text-center">
+            <h2>
               <span>Team Members</span>
             </h2>
           </div>
@@ -1025,6 +1051,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
       <section className="pb_50">
         <div className="container">

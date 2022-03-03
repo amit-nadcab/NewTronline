@@ -1,5 +1,5 @@
 <?php
-$connection = $con = mysqli_connect("localhost", "root", "", "bdlt") or die("DB not connected");
+$connection = $con = mysqli_connect("localhost", "bdlt_admin", "Nadcab@1234", "bdlt") or die("DB not connected");
 if (isset($_SERVER['HTTP_ORIGIN'])) {
 
   header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");

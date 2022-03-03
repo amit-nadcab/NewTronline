@@ -498,6 +498,7 @@ app.get("/api/calc-royalty-income", async (req, res) => {
     });
   }
 });
+
 app.post("/api/get-level-access", async (req, res) => {
   let level = req.body.level ? req.body.level : 1;
   let response = await calcLevel(level);
@@ -520,8 +521,6 @@ async function royalty_inc_func(id, amt) {
   })
 }
 
-
-
 async function getSiteData(req, res) {
   try {
     await SiteData.find({}).then((result) => {
@@ -542,10 +541,11 @@ async function getSiteData(req, res) {
     });
   }
 }
+
 app.get("/api/send-royalty-income", async (req, res) => {
   console.log("Calling Send Royalty Income:: ");
   let date = new Date().getDate();
-  if (date == 1) {
+  if (date == 7) {
     let response = await calcRoyalty();
     let stair7 = await calcLevel(7);
     if (stair7.result.length > 0) {
