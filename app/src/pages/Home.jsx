@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { NotificationManager } from "react-notifications";
+import { BiSupport } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { BsTelegram, BsWhatsapp, BsFacebook, BsInstagram, } from "react-icons/bs";
 import { FiExternalLink } from "react-icons/fi";
@@ -576,6 +577,9 @@ export default function Home() {
                 className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
               >
+                <a class="grad_btn btn-block text-light my-2" style={{fontSize:"0.875rem"}} onClick={()=>window.addNetwork("web3")}>
+                  <img class="mr-1" width={24} src="https://bscscan.com/images/svg/brands/metamask.svg" alt="Metamask"/> Add to Metamask
+                </a>
 
               </div>
               <div
@@ -1124,16 +1128,16 @@ export default function Home() {
                   />
                   Smart Contract info
                 </a>
-                {/* <a
+                 <a
                   class="grad_btn my-3 mt-4"
-                  href="https://support.tronline.io/"
+                  href="https://bdltcommunity.io/support/admin/AppLogin.php"
                   target="_blank"
                 >
                   <span className="mx-2">
                     <BiSupport size={24} color="white" />
                   </span>
                   Support
-                </a> */}
+                </a>
                 <div
                   className="m-2"
                   style={{
