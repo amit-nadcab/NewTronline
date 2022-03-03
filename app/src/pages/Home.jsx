@@ -1157,7 +1157,7 @@ export default function Home() {
                 </a>
                  <a
                   class="grad_btn my-3 mt-4"
-                  href="https://bdltcommunity.io/support/admin/AppLogin.php"
+                  href="https://bdltcommunity.io/support/Login.php"
                   target="_blank"
                 >
                   <span className="mx-2">
