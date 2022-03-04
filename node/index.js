@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const mysql = require('mysql');
+const fetch = require('cross-fetch');
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 app.use(express.json());
 app.use(cors());
@@ -101,6 +102,22 @@ function calcLevel(level) {
       function (err, result) {
         if (err) reject({ status: 0, err: err });
         let amt = 0;
+        if (result) {
+          resolve({
+            result: result,
+          });
+        }
+      }
+    );
+  })
+}
+function calcMemberLevel(level, total_member) {
+  return new Promise((resolve, reject) => {
+    console.log(level);
+    conn.query(
+      `Select * from tbl_member_level where level_name ='${level}' and total_member >='${total_member}' `,
+      function (err, result) {
+        if (err) reject({ status: 0, err: err });
         if (result) {
           resolve({
             result: result,
@@ -505,10 +522,10 @@ app.post("/api/get-level-access", async (req, res) => {
   return res.json(response);
 });
 
-async function royalty_inc_func(id, amt) {
+async function royalty_inc_func(user, amt) {
   return new Promise((resolve, reject) => {
     conn.query(
-      `Update Registration set royalty_wallet= '${amt}' where id ='${id}'`,
+      `Update Registration set royalty_wallet= '${amt}' where user ='${user}'`,
       function (err, result) {
         if (err) reject({ status: 0, err: err });
         if (result) {
@@ -546,80 +563,104 @@ app.get("/api/send-royalty-income", async (req, res) => {
   console.log("Calling Send Royalty Income:: ");
   let date = new Date().getDate();
   if (date == 7) {
-    let response = await calcRoyalty();
-    let stair7 = await calcLevel(7);
-    if (stair7.result.length > 0) {
-      let royalty_amt_for_stair7 = (response.result * 0.05) / stair7.result.length;
-      let a = stair7.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair7)
+    // if (1) {
+    await calcRoyalty().then(async (response) => {
+
+      // Stair 7 Royalty Send 
+
+      await calcMemberLevel(7, 128).then(async (stair7) => {
+        if (stair7.result.length > 0) {
+          let royalty_amt_for_stair7 = (response.result * 0.05) / stair7.result.length;
+          let a = stair7.result.map(async (it) => {
+            console.log("IT7 :: ", royalty_amt_for_stair7, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair7)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair7.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair7.result.length)
-    }
 
+      // Stair 8 Royalty Send 
 
-    let stair8 = await calcLevel(8);
-    if (stair8.result.length > 0) {
-      let royalty_amt_for_stair8 = (response.result * 0.04) / stair8.result.length;
-      let a = stair8.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair8)
+      await calcMemberLevel(8, 256).then(async (stair8) => {
+        if (stair8.result.length > 0) {
+          let royalty_amt_for_stair8 = (response.result * 0.04) / stair8.result.length;
+          let a = stair8.result.map(async (it) => {
+            console.log("IT8 :: ", royalty_amt_for_stair8, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair8)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair8.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair8.result.length)
-    }
 
+      // Stair 9 Royalty Send 
 
-    let stair9 = await calcLevel(9);
-    if (stair9.result.length > 0) {
-      let royalty_amt_for_stair9 = (response.result * 0.03) / stair9.result.length;
-      let a = stair9.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair9)
+      await calcMemberLevel(9, 512).then(async (stair9) => {
+        if (stair9.result.length > 0) {
+          let royalty_amt_for_stair9 = (response.result * 0.03) / stair9.result.length;
+          let a = stair9.result.map(async (it) => {
+            console.log("IT9 :: ", royalty_amt_for_stair9, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair9)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair9.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair9.result.length)
-    }
 
+      // Stair 10 Royalty Send 
 
-    let stair10 = await calcLevel(10);
-    if (stair10.result.length > 0) {
-      let royalty_amt_for_stair10 = (response.result * 0.02) / stair10.result.length;
-      let a = stair10.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair10)
+      await calcMemberLevel(10, 1024).then(async (stair10) => {
+        if (stair10.result.length > 0) {
+          let royalty_amt_for_stair10 = (response.result * 0.03) / stair10.result.length;
+          let a = stair10.result.map(async (it) => {
+            console.log("IT10 :: ", royalty_amt_for_stair10, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair10)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair10.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair10.result.length)
-    }
 
+      // Stair 11 Royalty Send 
 
-    let stair11 = await calcLevel(11);
-    if (stair11.result.length > 0) {
-      let royalty_amt_for_stair11 = (response.result * 0.01) / stair11.result.length;
-      let a = stair11.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair11)
+      await calcMemberLevel(11, 2048).then(async (stair11) => {
+        if (stair11.result.length > 0) {
+          let royalty_amt_for_stair11 = (response.result * 0.03) / stair11.result.length;
+          let a = stair11.result.map(async (it) => {
+            console.log("IT11 :: ", royalty_amt_for_stair11, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair11)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair11.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair11.result.length)
-    }
 
+      // Stair 12 Royalty Send 
 
-    let stair12 = await calcLevel(12);
-    if (stair12.result.length > 0) {
-      let royalty_amt_for_stair12 = (response.result * 0.005) / stair12.result.length;
-      let a = stair12.result.map(async (it) => {
-        royalty_inc_func(it.id, royalty_amt_for_stair12)
+      await calcMemberLevel(12, 4096).then(async (stair12) => {
+        if (stair12.result.length > 0) {
+          let royalty_amt_for_stair12 = (response.result * 0.03) / stair12.result.length;
+          let a = stair12.result.map(async (it) => {
+            console.log("IT12 :: ", royalty_amt_for_stair12, it.user)
+            royalty_inc_func(it.user, royalty_amt_for_stair12)
+          })
+          Promise.all(a);
+        } else {
+          console.log("No value :: ", stair12.result.length)
+        }
       })
-      Promise.all(a);
-    } else {
-      console.log("No value :: ", stair12.result.length)
-    }
-    return res.json(response.result);
+
+    });
+
+    // return res.json(response.result);
   } else {
-    return res.json("False");
+    return res.json("Date not matched!");
   }
 
 
