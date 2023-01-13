@@ -566,23 +566,18 @@ export default function Home() {
     <>
       <div className="container text-center mt-4">
         <div className="row">
-          <div
-            className="col-md-12 col-sm-12 col-lg-6"
-            style={{ fontSize: "30px" }}
-          >
-            <img
-              src="./img/logo-black.png"
-              className="img img-fluid"
-              style={{ width: "150px" }}
-            />
+          <div className="col-md-12 col-sm-12 col-lg-6 d-flex justify-content-start" style={{ fontSize: "30px" }}>
+            <img src="./img/logo-black.png" alt="logo" className="img img-fluid" style={{ width: "100px" }}/>
           </div>
-          <div className="col-md-12 col-sm-12 col-lg-6">
+          <div className="col-md-12 col-sm-12 col-lg-6 ">
             <div className="row">
               <div
-                className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
+                className="col-md-6 col-lg-6 col-sm-12 asm"
                 style={{ flexDirection: "column" }}
               >
-                <a class="grad_btn btn-block text-light my-2" style={{fontSize:"0.875rem"}} onClick={()=>window.addNetwork("web3")}>
+                <a class="grad_btn btn-block text-light my-2" style={{fontSize:"0.875rem"}}
+                //  onClick={()=>window.addNetwork("web3")}
+                 >
                   <img class="mr-1" width={24} src="https://bscscan.com/images/svg/brands/metamask.svg" alt="Metamask"/> Add to Metamask
                 </a>
 
@@ -592,10 +587,9 @@ export default function Home() {
                 style={{ flexDirection: "column" }}
               >
                 <a
-                  href="/BDLT.pdf"
+                  href="#"
                   className="grad_btn btn-block text-light my-2 "
                   style={{ padding: "10px 55px" }}
-                  target="_blank"
                 >
                   Download Plan
                 </a>
@@ -608,13 +602,11 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">BDLT COMMUNITY DEVELOPMENT PROGRAM</h1>
+            <h1 className="tirw">Turn Your Dreams Into Realty With Walletzilla</h1>
             {/* <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5> */}
             <p>
               {" "}
-              World First Decentralized Program on BDLT Blockchain. All Funds
-              are store in Smart Contract and members can withdraw their reward
-              directly from Smart contract. Get 200% Return On Investment .
+              The first decentralized Marketplace which makes simplifies and standardizes data with blockchain technology. We provides user friendly, efficient and secure crypto solutions and utilizing blockchain technology.
             </p>
           </div>
         </div>
@@ -625,14 +617,14 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-6">
               <div className="Personal_Details_inner">
                 <h4> Smart Contract Address </h4>
-                <h5><a href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`} target={"_blank"} style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
+                <h5><a href="#" style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
               </div>
             </div>
 
             <div className="col-md-6 col-sm-6 col-6">
               <div className="Personal_Details_inner">
                 <h4>Contract Balance </h4>
-                <h5>{round(smartBalance)} BDLT</h5>
+                <h5>{round(smartBalance)}</h5>
               </div>
             </div>
           </div>
@@ -650,18 +642,18 @@ export default function Home() {
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4> Total Staking </h4>
-                <h5>{round(total_investment)} BDLT</h5>
+                <h5>{round(total_investment)}</h5>
               </div>
             </div>
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4> Total Withdrawal Distributed</h4>
-                <h5>{round(total_withdraw)} BDLT</h5>
+                <h5>{round(total_withdraw)}</h5>
               </div>
             </div>
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4>BDLT Price </h4>
+                <h4> Price </h4>
                 <h5>$ {round(price)}</h5>
               </div>
             </div>
@@ -707,17 +699,17 @@ export default function Home() {
                   <button
                     className="grad_btn btn-block mx-4"
                     style={{ padding: "10px 15px" }}
-                    onClick={() => {
-                      onConnect()
-                        .then((d) => {
-                          console.log(d);
-                          setBalance(round(d?.balance));
-                          setContract(d?.contract);
-                          setWalletAddress(d?.userAddress);
-                          setJoiningPackage(d?.joiningPackage);
-                        })
-                        .catch((e) => console.log(e));
-                    }}
+                    // onClick={() => {
+                    //   onConnect()
+                    //     .then((d) => {
+                    //       console.log(d);
+                    //       setBalance(round(d?.balance));
+                    //       setContract(d?.contract);
+                    //       setWalletAddress(d?.userAddress);
+                    //       setJoiningPackage(d?.joiningPackage);
+                    //     })
+                    //     .catch((e) => console.log(e));
+                    // }}
                   >
                     Connect Wallet
                   </button>
@@ -733,9 +725,9 @@ export default function Home() {
                   className="text-light"
                   style={{ margin: "10px 0px", fontSize: "15px" }}
                 >
-                  Wallet Balance: {" " + balance + " "} BDLT
+                  Wallet Balance: {" " + balance + " "} 
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Joining Package{" "}
-                  {": " + parseInt(joiningPackage / 1e18)} BDLT ($ 100)
+                  {": " + parseInt(joiningPackage / 1e18)}  ($ 100)
                 </div>
                 <div className="col-md-8 col-lg-8 col-sm-8">
                   <div className="form-group">
@@ -825,7 +817,7 @@ export default function Home() {
                 <h6>
                   Your Wallet Balance -{" "}
                   <span style={{ fontSize: "15px" }}>
-                    {balance ?? 0} BDLT
+                    {balance ?? 0} 
                   </span>{" "}
                 </h6>
                 {viewmodeflag == 0 ? (
@@ -889,19 +881,19 @@ export default function Home() {
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
                 <h4>Direct Sponsor Income</h4>
-                <h5>{(directIncome).toFixed(2)} BDLT</h5>
+                <h5>{(directIncome).toFixed(2)}</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
                 <h4>Stair Income</h4>
-                <h5>{(levelIncome).toFixed(2)} BDLT</h5>
+                <h5>{(levelIncome).toFixed(2)}</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
                 <h4>Total Available Income</h4>
-                <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))} BDLT</h5>
+                <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))}</h5>
               </div>
             </div>
           </div>
@@ -910,13 +902,13 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Total Income</h4>
-                <h5>{round((roi ? Number(roi) : 0) + (royaltyWallet ? Number(royaltyWallet) : 0) + Number(withdrawalAmt)).toFixed(2)} BDLT</h5>
+                <h5>{round((roi ? Number(roi) : 0) + (royaltyWallet ? Number(royaltyWallet) : 0) + Number(withdrawalAmt)).toFixed(2)}</h5>
               </div>
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
                 <h4>Total Withdrawal</h4>
-                <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)} BDLT</h5>
+                <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)}</h5>
               </div>
             </div>
           </div>
@@ -925,7 +917,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Roi Income</h4>
-                <h5>{Number(roi).toFixed(2)} BDLT</h5>
+                <h5>{Number(roi).toFixed(2)}</h5>
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
                 </button>
@@ -934,7 +926,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Royalty Income</h4>
-                <h5>{royaltyWallet ? royaltyWallet : 0} BDLT</h5>
+                <h5>{royaltyWallet ? royaltyWallet : 0}</h5>
                 <button className="grad_btn my-2" onClick={onRoyaltyWithdraw}>
                   Withdraw Royalty
                 </button>
@@ -1142,24 +1134,11 @@ export default function Home() {
                   alignItems: "center",
                 }}
               >
-                <a
-                  style={{ borderRadius: "10px" }}
-                  className="grad_btn px-3 text-light mx-2"
-                  href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`}
-                  target="_blank"
-                >
-                  <img
-                    src="/icon_lg.png"
-                    className="mx-2"
-                    style={{ width: "30px" }}
-                  />
+                <a style={{ borderRadius: "10px" }} className="grad_btn px-3 text-light mx-2" href="#">
+                  <img src="/icon_lg.png" className="mx-2" style={{ width: "30px" }} alt="logo"/>
                   Smart Contract info
                 </a>
-                 <a
-                  class="grad_btn my-3 mt-4"
-                  href="https://bdltcommunity.io/support/Login.php"
-                  target="_blank"
-                >
+                 <a class="grad_btn my-3 mt-4" href="#">
                   <span className="mx-2">
                     <BiSupport size={24} color="white" />
                   </span>
@@ -1180,18 +1159,14 @@ export default function Home() {
                   <span className="mx-2">
                     <BsTelegram size={24} color="white" />
                   </span>
-                  <a
-                    href="https://t.me/+7tHV4QkwDeEyOGM9"
-                    className="text-light"
-                    target="_blank"
-                  >
+                  <a href="#" className="text-light" rel="noreferrer">
                     Telegram
                   </a>
                 </div>
               </div>
             </div>
             <hr />
-            <p>© 2022 BDLT Community | All Rights Reserved. </p>
+            <p>© 2023 WalletZilla | All Rights Reserved. </p>
           </div>
         </footer>
       </div>

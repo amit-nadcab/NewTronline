@@ -336,28 +336,28 @@ function getTotalWithdraw() {
   });
 }
 
-app.get("/api/global-stats", function (req, res) {
-  conn.query("Select count(*) as totalUser,IFNULL(sum(amount)/1e18,0) as totalPayout From Registration", function (err, result) {
-    if (err) res.json({ status: 0, msg: err });
-    contract.methods.price().call().then(async d => {
-      let total = await getTotalWithdraw();
-      let contract_balance = await web3.eth.getBalance(contract_address);
-      res.json({
-        status: 1,
-        result: result[0],
-        price: d / 1e18,
-        withdraw: total,
-        contract_balance: contract_balance / 1e18
-      })
-    }).catch(e => {
-      res.json({
-        status: 0,
-        err: e
-      })
-    })
+// app.get("/api/global-stats", function (req, res) {
+//   conn.query("Select count(*) as totalUser,IFNULL(sum(amount)/1e18,0) as totalPayout From Registration", function (err, result) {
+//     if (err) res.json({ status: 0, msg: err });
+//     contract.methods.price().call().then(async d => {
+//       let total = await getTotalWithdraw();
+//       let contract_balance = await web3.eth.getBalance(contract_address);
+//       res.json({
+//         status: 1,
+//         result: result[0],
+//         price: d / 1e18,
+//         withdraw: total,
+//         contract_balance: contract_balance / 1e18
+//       })
+//     }).catch(e => {
+//       res.json({
+//         status: 0,
+//         err: e
+//       })
+//     })
 
-  })
-})
+//   })
+// })
 
 app.post("/api/royaltyWithdraw", async (req, res) => {
   let user = req.body.user;

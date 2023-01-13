@@ -1,10 +1,12 @@
 body {
   overflow-x: hidden;
   color: #fff;
-  font-family: poppins, sans-serif;
+  /* font-family: poppins, sans-serif; */
+  font-family: 'Lato', sans-serif;
   font-weight: 400;
   font-size: 13px;
 }
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap'); 
 
 @media (min-width:350px){
   .dark_body::before {
@@ -43,7 +45,7 @@ body {
 }
 
 .dark_body {
-  background: #000000;
+  background: #070b27;
 }
 .grad_btn:hover, .grad_btn:focus, .grad_btn:active {
   background: 0 0;
