@@ -8,6 +8,7 @@ import { FiExternalLink } from "react-icons/fi";
 
 import { CONTRACT_ADDRESS } from "../HelperFunction/config"
 import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet, globalStat, getRequiredMembers } from "../HelperFunction/script";
+import { onConnectTron } from "../HelperFunction/tronhelperFunction";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -567,26 +568,26 @@ export default function Home() {
       <div className="container text-center mt-4">
         <div className="row">
           <div
-            className="col-md-12 col-sm-12 col-lg-6"
+            className="col-md-12 col-sm-12 col-lg-6 d-flex justify-content-start  "
             style={{ fontSize: "30px" }}
           >
             <img
-              src="./img/logo-black.png"
+              src="./img/logo.png"
               className="img img-fluid"
-              style={{ width: "150px" }}
+              style={{ width: "250px" }}
             />
           </div>
           <div className="col-md-12 col-sm-12 col-lg-6">
-            <div className="row">
-              <div
+            <div className="row justify-content-end">
+              {/* <div
                 className="col-md-6 col-lg-6 col-sm-12 asm d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
               >
-                <a class="grad_btn btn-block text-light my-2" style={{fontSize:"0.875rem"}} onClick={()=>window.addNetwork("web3")}>
-                  <img class="mr-1" width={24} src="https://bscscan.com/images/svg/brands/metamask.svg" alt="Metamask"/> Add to Metamask
+                <a class="grad_btn btn-block text-light my-2" style={{fontSize:"0.875rem"}} onClick={()=>onConnectTron()}>
+                  <img class="mr-1" width={24} src="./img/logo.abadbf5d.svg" alt="TronLink"/> Add to TronLink
                 </a>
 
-              </div>
+              </div> */}
               <div
                 className="col-md-6 col-lg-6 col-sm-12 d-flex justify-content-center"
                 style={{ flexDirection: "column" }}
@@ -608,11 +609,11 @@ export default function Home() {
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
           <div className="banner_text text-center middle_text">
-            <h1 className="tirw">BDLT COMMUNITY DEVELOPMENT PROGRAM</h1>
+            <h1 className="tirw">SuperTron COMMUNITY DEVELOPMENT PROGRAM</h1>
             {/* <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5> */}
             <p>
               {" "}
-              World First Decentralized Program on BDLT Blockchain. All Funds
+              World First Decentralized Program on Tron Blockchain. All Funds
               are store in Smart Contract and members can withdraw their reward
               directly from Smart contract. Get 200% Return On Investment .
             </p>
@@ -632,7 +633,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-6">
               <div className="Personal_Details_inner">
                 <h4>Contract Balance </h4>
-                <h5>{round(smartBalance)} BDLT</h5>
+                <h5>{round(smartBalance)} trx</h5>
               </div>
             </div>
           </div>
@@ -650,18 +651,18 @@ export default function Home() {
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4> Total Staking </h4>
-                <h5>{round(total_investment)} BDLT</h5>
+                <h5>{round(total_investment)} trx</h5>
               </div>
             </div>
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4> Total Withdrawal Distributed</h4>
-                <h5>{round(total_withdraw)} BDLT</h5>
+                <h5>{round(total_withdraw)} trx</h5>
               </div>
             </div>
             <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4>BDLT Price </h4>
+                <h4>SuperTron trx </h4>
                 <h5>$ {round(price)}</h5>
               </div>
             </div>
@@ -708,15 +709,7 @@ export default function Home() {
                     className="grad_btn btn-block mx-4"
                     style={{ padding: "10px 15px" }}
                     onClick={() => {
-                      onConnect()
-                        .then((d) => {
-                          console.log(d);
-                          setBalance(round(d?.balance));
-                          setContract(d?.contract);
-                          setWalletAddress(d?.userAddress);
-                          setJoiningPackage(d?.joiningPackage);
-                        })
-                        .catch((e) => console.log(e));
+                     onConnectTron()
                     }}
                   >
                     Connect Wallet
@@ -733,9 +726,9 @@ export default function Home() {
                   className="text-light"
                   style={{ margin: "10px 0px", fontSize: "15px" }}
                 >
-                  Wallet Balance: {" " + balance + " "} BDLT
+                  Wallet Balance: {" " + balance + " "} trx
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Joining Package{" "}
-                  {": " + parseInt(joiningPackage / 1e18)} BDLT ($ 100)
+                  {": " + parseInt(joiningPackage / 1e18)} trx ($ 100)
                 </div>
                 <div className="col-md-8 col-lg-8 col-sm-8">
                   <div className="form-group">
@@ -889,19 +882,19 @@ export default function Home() {
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
                 <h4>Direct Sponsor Income</h4>
-                <h5>{(directIncome).toFixed(2)} BDLT</h5>
+                <h5>{(directIncome).toFixed(2)} trx</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
                 <h4>Stair Income</h4>
-                <h5>{(levelIncome).toFixed(2)} BDLT</h5>
+                <h5>{(levelIncome).toFixed(2)} trx</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
                 <h4>Total Available Income</h4>
-                <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))} BDLT</h5>
+                <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))} trx</h5>
               </div>
             </div>
           </div>
@@ -910,13 +903,13 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Total Income</h4>
-                <h5>{round((roi ? Number(roi) : 0) + (royaltyWallet ? Number(royaltyWallet) : 0) + Number(withdrawalAmt)).toFixed(2)} BDLT</h5>
+                <h5>{round((roi ? Number(roi) : 0) + (royaltyWallet ? Number(royaltyWallet) : 0) + Number(withdrawalAmt)).toFixed(2)} trx</h5>
               </div>
             </div>
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner">
                 <h4>Total Withdrawal</h4>
-                <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)} BDLT</h5>
+                <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)} trx</h5>
               </div>
             </div>
           </div>
@@ -925,7 +918,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Roi Income</h4>
-                <h5>{Number(roi).toFixed(2)} BDLT</h5>
+                <h5>{Number(roi).toFixed(2)} trx</h5>
                 <button className="grad_btn my-2" onClick={onWithdraw}>
                   Withdraw Roi
                 </button>
@@ -934,7 +927,7 @@ export default function Home() {
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Royalty Income</h4>
-                <h5>{royaltyWallet ? royaltyWallet : 0} BDLT</h5>
+                <h5>{royaltyWallet ? royaltyWallet : 0} trx</h5>
                 <button className="grad_btn my-2" onClick={onRoyaltyWithdraw}>
                   Withdraw Royalty
                 </button>
@@ -1119,7 +1112,7 @@ export default function Home() {
             <div class="mt_20">
               {/* <h2> TronLine</h2> */}
               <img
-                src="./img/logo-black.png"
+                src="./img/logo.png"
                 className="img img-fluid"
                 style={{ width: "150px" }}
               />
@@ -1172,7 +1165,7 @@ export default function Home() {
                     flexDirection: "row",
                     alignItems: "center",
                     background:
-                      "linear-gradient(to right, rgb(183 183 183), rgb(92 91 94))",
+                      "#da934a",
                     padding: "8px 15px",
                     borderRadius: "10px",
                   }}
@@ -1191,7 +1184,7 @@ export default function Home() {
               </div>
             </div>
             <hr />
-            <p>© 2022 BDLT Community | All Rights Reserved. </p>
+            <p>© {new Date().getFullYear()} SuperTron Community | All Rights Reserved. </p>
           </div>
         </footer>
       </div>

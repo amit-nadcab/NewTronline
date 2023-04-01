@@ -43,7 +43,7 @@ body {
 }
 
 .dark_body {
-  background: #000000;
+  background: #1f2641;
 }
 .grad_btn:hover, .grad_btn:focus, .grad_btn:active {
   background: 0 0;

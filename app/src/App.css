@@ -21,7 +21,7 @@
   content: "";
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #abaeaf 0%, #f3f3f333 100%);
+  background: #c39853;
   position: absolute;
   z-index: -1;
   left: 0;
@@ -130,7 +130,7 @@
 
 .all_heading h2 span {
   color: transparent;
-  background: linear-gradient(90deg, #6c7374 0%, #c0bdc5 100%);
+  background:linear-gradient(90deg, #74EBD5 0%, #da934a 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -239,7 +239,7 @@ hr {
 }
 
 .sc-iwjdpV {
-  background: linear-gradient(90deg, #6c7374 0%, #c0bdc5 100%);
+  background:#303f6c !important;
   color: #fff !important;
   font-size: 15px;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -259,6 +259,12 @@ hr {
   text-align: center;
   padding: 30px 10px;
   position: relative;
+  background-color: #3bc3aa;
+background-image: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+
+  
+
+
 }
 
 .vipbox {
