@@ -37,6 +37,14 @@
   margin: auto;
   padding: 0px 100px;
 }
+/* .main_banner{
+height: 678px;
+}
+.main_banner img{
+  width: 100%;
+  position:absolute;
+  top:-130px
+} */
 
 @media (max-width: 620px) {
   .banner_text {
@@ -151,10 +159,11 @@
 .cus_input {
   background: 0 0;
   border-radius: 5px;
-  color: #32defa;
-  border: 1px solid #32defa;
+  color: #3bc3aa;
+  border: 1px solid #3bc3aa;
   padding: 10px;
   width: 100%;
+  outline: #3bc3aa;
 }
 
 .form-group {
@@ -261,10 +270,23 @@ hr {
   position: relative;
   background-color: #3bc3aa;
 background-image: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+height:137px
 
-  
-
-
+}
+.withdrawal_input{
+  background: transparent;
+  border:2px solid #dc913a;
+  outline:none;
+  padding: 5px;
+  border-radius:5px;
+  color:#fff;
+  font-weight:bold;
+  pointer-events: none;
+  cursor: none;
+}
+.withdrawal_input input{
+  color:#fff;
+  font-weight:bold
 }
 
 .vipbox {
@@ -394,8 +416,8 @@ a:not([href]):not([class]) {
   height: 33px;
 }
 
-thead {
-  background: linear-gradient(90deg, #6c7374 0%, #c0bdc5 100%);
+thead{
+  background:linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%) ;
   color: #fff;
 }
 
@@ -418,7 +440,7 @@ thead {
 }
 
 .table tbody td {
-  padding: 20px;
+  padding: 5px;
   background: #000349;
 }
 
@@ -492,12 +514,16 @@ element.style {}
 .rdt_TableRow {
   background: transparent !important;
 }
+.notification-info{
+  background-color: #3bc3aa !important;
+}
 
 .rdt_Pagination {
   background: linear-gradient(90deg, #ced2d3 0%, #232324 100%);
   color: white !important;
   min-height: 40px !important;
 }
+
 
 /* #row-2,
 #row-1, 
@@ -526,11 +552,32 @@ element.style {}
   background: 0 0;
   border-radius: 5px;
   color: #8dc6ff;
-  border: 1px solid #3e5a85;
+  border: 1px solid #3bc3aa;
   padding: 10px;
   width: 100%;
 }
+.cus_input::placeholder{
+  color:#e2dfdf
+}
+.accordion-body{
+  color:#000;
+  background: #ffeaaf;
+}
+.table tbody td {
+  padding: 5px;
+  background: #ffeaaf;
+  border: none !important;
+  padding-left: 10px;
+}
 
+.accordion-button:not(.collapsed){
+  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+  color:#f1f1f1
+}
+.accordion-button{
+  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+  color:#fff
+}
 @media only screen and (max-width: 760px) {
   .trx_btn li {
     width: 33.33%;
@@ -540,6 +587,9 @@ element.style {}
   .gridtable tbody tr {
     table-layout: fixed;
     width: 100%;
+  }
+  .withdraw_bg{
+    min-height:300px !important
   }
 
   .gridtable tbody {

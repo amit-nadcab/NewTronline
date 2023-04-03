@@ -45,6 +45,13 @@ body {
 .dark_body {
   background: #1f2641;
 }
+
+.table tbody td {
+  padding: 20px;
+  background: #ffeaaf;
+}
+
+
 .grad_btn:hover, .grad_btn:focus, .grad_btn:active {
   background: 0 0;
   border: 1px solid #32defa;

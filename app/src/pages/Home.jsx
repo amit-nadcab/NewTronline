@@ -6,9 +6,9 @@ import { useSelector } from "react-redux";
 import { BsTelegram, BsWhatsapp, BsFacebook, BsInstagram, } from "react-icons/bs";
 import { FiExternalLink } from "react-icons/fi";
 
-import { CONTRACT_ADDRESS } from "../HelperFunction/config"
+// import { CONTRACT_ADDRESS } from "../HelperFunction/config"
 import { getIncome, getTeam, getUserInfo, getWithdraw, onConnect, royaltyWithdraw, userIdByWallet, globalStat, getRequiredMembers } from "../HelperFunction/script";
-import { onConnectTron } from "../HelperFunction/tronhelperFunction";
+import { onConnectTron,CONTRACT_ADDRESS, getTronContract } from "../HelperFunction/tronhelperFunction";
 
 export default function Home() {
   const state = useSelector((state) => state);
@@ -19,7 +19,7 @@ export default function Home() {
   const [income, setIncome] = useState([]);
   const [withdrawalAmt, setWithdrawAmt] = useState(0);
   const [withdraw, setWithdraw] = useState([]);
-  const [contract, setContract] = useState({});
+  const [contract, setContract] = useState("");
   const [joinAmount, setjoinAmount] = useState(0);
   const [ref_id, setref_id] = useState(0);
   const [levelIncome, setLevelIncome] = useState(0);
@@ -74,7 +74,17 @@ export default function Home() {
       setSmartBalance(d?.contract_balance);
       setTotalWithdraw(d?.withdraw ?? 0);
     }).catch(e => console.log(e));
+
+   
   }, []);
+  // useEffect(()=>{
+  //   (async()=>{
+  //     const data = await onConnectTron();
+  //     console.log(data,"data  ");
+  //   })()
+  // })
+
+
   let j = 2;
   const requiredmembercolumn = [
     {
@@ -256,148 +266,148 @@ export default function Home() {
     },
   ];
 
-  const withdrawcolumn = [
-    {
-      name: "SR No.",
-      selector: (row, i) => i + 1,
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "rgba(63, 195, 128, 0.9)",
-      },
-    },
-    {
-      name: "Amount",
-      selector: (row) => (Number(row.amount) / 1e18).toFixed(2) + " BDLT",
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
-    {
-      name: "Timestamp",
-      selector: (row) => new Date(Number(row.block_timestamp) * 1000).toLocaleString(),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
+  // const withdrawcolumn = [
+  //   {
+  //     name: "SR No.",
+  //     selector: (row, i) => i + 1,
+  //     sortable: true,
+  //     style: {
+  //       backgroundColor: "transparent",
+  //       color: "rgba(63, 195, 128, 0.9)",
+  //     },
+  //   },
+  //   {
+  //     name: "Amount",
+  //     selector: (row) => (Number(row.amount) / 1e18).toFixed(2) + " BDLT",
+  //     sortable: true,
+  //     style: {
+  //       backgroundColor: "transparent",
+  //       color: "black",
+  //     },
+  //   },
+  //   {
+  //     name: "Timestamp",
+  //     selector: (row) => new Date(Number(row.block_timestamp) * 1000).toLocaleString(),
+  //     sortable: true,
+  //     style: {
+  //       backgroundColor: "transparent",
+  //       color: "black",
+  //     },
+  //   },
 
-    {
-      name: "Transaction Id",
-      selector: (row) => (
-        <a
-          href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
-          target="_blank"
-          style={{ color: "white", textDecoration: "none" }}
-        >
-          {
-            row.transaction_id
-              ? row.transaction_id.substr(0, 10) +
-              "......." +
-              row.transaction_id.substr((row.transaction_id).length - 10, (row.transaction_id).length)
-              : "--"}
-          <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
+  //   {
+  //     name: "Transaction Id",
+  //     selector: (row) => (
+  //       <a
+  //         href={`https://explorer.bdltscan.io/tx/${row.transaction_id}/internal-transactions`}
+  //         target="_blank"
+  //         style={{ color: "white", textDecoration: "none" }}
+  //       >
+  //         {
+  //           row.transaction_id
+  //             ? row.transaction_id.substr(0, 10) +
+  //             "......." +
+  //             row.transaction_id.substr((row.transaction_id).length - 10, (row.transaction_id).length)
+  //             : "--"}
+  //         <FiExternalLink size={18} className="mx-1 pb-1" color="white" />
 
-        </a>
-      ),
-      sortable: true,
-      style: {
-        backgroundColor: "transparent",
-        color: "black",
-      },
-    },
-  ];
+  //       </a>
+  //     ),
+  //     sortable: true,
+  //     style: {
+  //       backgroundColor: "transparent",
+  //       color: "black",
+  //     },
+  //   },
+  // ];
 
-  const customStyles = {
-    rows: {
-      style: {
-        minHeight: "52px", // override the row height
-      },
-    },
-    headCells: {
-      style: {
-        fontSize: "14px",
-        fontWeight: "500",
-        textTransform: "uppercase",
-        paddingLeft: "0 8px",
-      },
-    },
-    cells: {
-      style: {
-        fontSize: "14px",
-        paddingLeft: "0 8px",
-      },
-    },
-  };
+  // const customStyles = {
+  //   rows: {
+  //     style: {
+  //       minHeight: "52px", // override the row height
+  //     },
+  //   },
+  //   headCells: {
+  //     style: {
+  //       fontSize: "14px",
+  //       fontWeight: "500",
+  //       textTransform: "uppercase",
+  //       paddingLeft: "0 8px",
+  //     },
+  //   },
+  //   cells: {
+  //     style: {
+  //       fontSize: "14px",
+  //       paddingLeft: "0 8px",
+  //     },
+  //   },
+  // };
 
   useEffect(() => {
     if (wallet_address) {
-      getUserInfo(wallet_address)
-        .then((d) => {
-          console.log(d);
-          if (d.status == 1) {
-            setref_id(d.data.id);
-            setDirectIncome(
-              d.data.sponcerIncome
-                ? round(Number(d.data.sponcerIncome) / 1e18)
-                : 0
-            );
-            setLevelIncome(
-              d.data.levelIncome ? round(Number(d.data.levelIncome) / 1e18) : 0
-            );
-            setRoi(
-              d.roi
-                ? Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000
-                : 0
-            );
-            setRefferer(d.data.referrer);
-            console.log("Royalty Wallet :: ", d.result[0].royalty_wallet)
-            setRoyaltyWallet(d.result[0].royalty_wallet);
-            setjoinAmount(d.data.joiningAmt);
-            setDirectSponcer(d.data.partnersCount);
-            setWithdrawAmt(
-              d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) + d.withdraw : 0
-            );
-            console.log((Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000) + Number(d.result[0].royalty_wallet))
-          } else {
-            console.log("Error:::", d.err);
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-      getRequiredMembers(wallet_address).then((ss) => {
-        if (ss) {
-          getRequiredMember(ss);
-        }
-      }).catch((e) => {
-        console.log(e);
-      });
-      getTeam(wallet_address).then((ss) => {
-        if (ss) {
-          setTeam(ss);
-        }
-      }).catch((e) => {
-        console.log(e);
-      });
-      getIncome(wallet_address).then((ss) => {
-        if (ss) {
-          setIncome(ss.result);
-        }
-      }).catch((e) => {
-        console.log(e);
-      });
-      getWithdraw(wallet_address).then((ss) => {
-        if (ss) {
-          console.log("DATA :: ", ss);
-          setWithdraw(ss.result);
-        }
-      }).catch((e) => {
-        console.log(e);
-      });
+      // getUserInfo(wallet_address)
+      //   .then((d) => {
+      //     console.log(d);
+      //     if (d.status == 1) {
+      //       setref_id(d.data.id);
+      //       setDirectIncome(
+      //         d.data.sponcerIncome
+      //           ? round(Number(d.data.sponcerIncome) / 1e18)
+      //           : 0
+      //       );
+      //       setLevelIncome(
+      //         d.data.levelIncome ? round(Number(d.data.levelIncome) / 1e18) : 0
+      //       );
+      //       setRoi(
+      //         d.roi
+      //           ? Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000
+      //           : 0
+      //       );
+      //       setRefferer(d.data.referrer);
+      //       console.log("Royalty Wallet :: ", d.result[0].royalty_wallet)
+      //       setRoyaltyWallet(d.result[0].royalty_wallet);
+      //       setjoinAmount(d.data.joiningAmt);
+      //       setDirectSponcer(d.data.partnersCount);
+      //       setWithdrawAmt(
+      //         d.data.withdrawn ? round(Number(d.data.withdrawn) / 1e18) + d.withdraw : 0
+      //       );
+      //       console.log((Math.round((Number(d.roi) / 1e18) * 1000000000) / 1000000000) + Number(d.result[0].royalty_wallet))
+      //     } else {
+      //       console.log("Error:::", d.err);
+      //     }
+      //   })
+      //   .catch((e) => {
+      //     console.log(e);
+      //   });
+      // getRequiredMembers(wallet_address).then((ss) => {
+      //   if (ss) {
+      //     getRequiredMember(ss);
+      //   }
+      // }).catch((e) => {
+      //   console.log(e);
+      // });
+      // getTeam(wallet_address).then((ss) => {
+      //   if (ss) {
+      //     setTeam(ss);
+      //   }
+      // }).catch((e) => {
+      //   console.log(e);
+      // });
+      // getIncome(wallet_address).then((ss) => {
+      //   if (ss) {
+      //     setIncome(ss.result);
+      //   }
+      // }).catch((e) => {
+      //   console.log(e);
+      // });
+      // getWithdraw(wallet_address).then((ss) => {
+      //   if (ss) {
+      //     console.log("DATA :: ", ss);
+      //     setWithdraw(ss.result);
+      //   }
+      // }).catch((e) => {
+      //   console.log(e);
+      // });
     }
   }, [wallet_address, reflect]);
 
@@ -420,70 +430,78 @@ export default function Home() {
   }
 
   async function onRegistration() {
+    const tContract = await getTronContract()
     setspin("spinner-border spinner-border-sm");
-    // balance >= joinAmount
-    if (balance >= joinAmount) {
-      console.log("refferal Id::", ref_id1, joinAmount);
-      contract.methods
-        .isUserExists(wallet_address)
-        .call()
-        .then((is_exist) => {
-          if (!is_exist) {
-            contract.methods
-              .idToAddress(ref_id1)
-              .call()
-              .then((d) => {
-                console.log("Refferal Address ::", d);
-                if (d !== "0x0000000000000000000000000000000000000000") {
-                  contract.methods
-                    .registrationExt(d)
-                    .send({
-                      from: wallet_address,
-                      value: joiningPackage,
-                      // value: 0,
-                    })
-                    .then((d) => {
-                      setspin("");
-                      setdisable(false);
-                      setReflect(!reflect);
-                    })
-                    .catch((e) => {
-                      console.log("Error :: ", e);
-                      setspin("");
-                      setdisable(false);
-                      setReflect(!reflect);
-                    });
-                } else {
-                  NotificationManager.error(
-                    "Refferal Not Exist",
-                    "Invalid Referrel"
-                  );
+    try {
+      if (balance >= joinAmount) {
+        console.log("refferal Id::", ref_id1, joinAmount,wallet_address,contract);
+        tContract
+          .isExist("3999")
+          .call()
+          .then((is_exist) => {
+            console.log(is_exist,"is_exist")
+            if (!is_exist) {
+              console.log(ref_id1,"ref_id1");
+              tContract
+                .idToAddress(ref_id1)
+                .call()
+                .then((d) => {
+                  console.log("Refferal Address ::", d);
+                  if (d !== "0x0000000000000000000000000000000000000000") {
+                    tContract.methods
+                      .Invest("100000000",d)
+                      .send({
+                        from: wallet_address,
+                        value: 0,
+                        // value: 0,
+                      })
+                      .then((d) => {
+                        setspin("");
+                        setdisable(false);
+                        setReflect(!reflect);
+                      })
+                      .catch((e) => {
+                        console.log("Error :: ", e);
+                        setspin("");
+                        setdisable(false);
+                        setReflect(!reflect);
+                      });
+                  } else {
+                    NotificationManager.error(
+                      "Refferal Not Exist",
+                      "Invalid Referrel"
+                    );
+                    setspin("");
+                    setdisable(false);
+                    setReflect(!reflect);
+                  }
+                })
+                .catch((e) => {
+                  console.log("Error:: ", e);
                   setspin("");
                   setdisable(false);
-                  setReflect(!reflect);
-                }
-              })
-              .catch((e) => {
-                console.log("Error:: ", e);
-                setspin("");
-                setdisable(false);
-              });
-          } else {
-            NotificationManager.error("user already Join", "Already Exist");
+                });
+            } else {
+              NotificationManager.error("user already Join", "Already Exist");
+              setspin("");
+              setdisable(false);
+            }
+          })
+          .catch((e) => {
+            console.log(e);
             setspin("");
             setdisable(false);
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-          setspin("");
-          setdisable(false);
-        });
-    } else {
-      NotificationManager.error("Low Balance ", "Error");
-      setspin("");
-      setdisable(false);
+          });
+      } else {
+        NotificationManager.error("Low Balance ", "Error");
+        setspin("");
+        setdisable(false);
+      }
+    } catch (error) {
+      alert(error)
     }
+    // balance >= joinAmount
+ 
   }
 
   async function onRoyaltyWithdraw() {
@@ -530,7 +548,7 @@ export default function Home() {
         }
       })
       .catch((e) => {
-        console.log("Error:: ", e);
+
         setspin3("");
         setReflect(!reflect);
       });
@@ -593,7 +611,7 @@ export default function Home() {
                 style={{ flexDirection: "column" }}
               >
                 <a
-                  href="/BDLT.pdf"
+                  // href="/BDLT.pdf"
                   className="grad_btn btn-block text-light my-2 "
                   style={{ padding: "10px 55px" }}
                   target="_blank"
@@ -605,6 +623,10 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {/* <div className="container main_banner position-relative">
+        <img src="./img/earth.png" alt="" />
+
+      </div> */}
 
       <section className="banner_section pt_50 pb_50 mt-5">
         <div className="container">
@@ -613,7 +635,7 @@ export default function Home() {
             {/* <h5>BDLT COMMUNITY DEVELOPMENT PROGRAM</h5> */}
             <p>
               {" "}
-              World First Decentralized Program on Tron Blockchain. All Funds
+              Supertron is a crowd funding market with a unique platform which brings the transparency with the secured and promising network. All Funds
               are store in Smart Contract and members can withdraw their reward
               directly from Smart contract. Get 200% Return On Investment .
             </p>
@@ -623,14 +645,14 @@ export default function Home() {
       <section>
         <div className="container">
           <div className="row cus_row">
-            <div className="col-md-6 col-sm-6 col-6">
+            <div className="col-md-6 col-sm-6 col-12  ">
               <div className="Personal_Details_inner">
                 <h4> Smart Contract Address </h4>
-                <h5><a href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`} target={"_blank"} style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
+                <h5><a href={`https://shasta.tronscan.org/#/contract/${CONTRACT_ADDRESS}/transactions`} target={"_blank"} style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
               </div>
             </div>
 
-            <div className="col-md-6 col-sm-6 col-6">
+            <div className="col-md-6 col-sm-6 col-12">
               <div className="Personal_Details_inner">
                 <h4>Contract Balance </h4>
                 <h5>{round(smartBalance)} trx</h5>
@@ -641,31 +663,31 @@ export default function Home() {
       </section>
       <section className="pb_50">
         <div className="container">
-          <div className="row cus_row">
-            <div className="col-md-3 col-sm-3 col-6">
+          <div className="row cus_row justify-content-center">
+            <div className="col-md-4 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4>Total Community Member</h4>
+                <h4>Global Community</h4>
                 <h5>{total_member}+</h5>
               </div>
             </div>
-            <div className="col-md-3 col-sm-3 col-6">
+            <div className="col-md-4 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4> Total Staking </h4>
+                <h4> Total Investment </h4>
                 <h5>{round(total_investment)} trx</h5>
               </div>
             </div>
-            <div className="col-md-3 col-sm-3 col-6">
+            <div className="col-md-4 col-sm-3 col-6">
               <div className="Personal_Details_inner">
                 <h4> Total Withdrawal Distributed</h4>
                 <h5>{round(total_withdraw)} trx</h5>
               </div>
             </div>
-            <div className="col-md-3 col-sm-3 col-6">
+            {/* <div className="col-md-3 col-sm-3 col-6">
               <div className="Personal_Details_inner">
-                <h4>SuperTron trx </h4>
+                <h4>Available Balance </h4>
                 <h5>$ {round(price)}</h5>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -694,14 +716,14 @@ export default function Home() {
                   flexWrap: "wrap",
                 }}
               >
-                <h6>
+                <h6 style={{fontWeight:600, color:"#17b895"}}>
                   Wallet address -{" "}
-                  <span style={{ fontSize: "15px" }}>
+                  <span style={{ fontSize: "15px",color:"#fff" }}>
                     {wallet_address
                       ? wallet_address.substr(0, 10) +
                       "......." +
                       wallet_address.substr(25)
-                      : "Press Refresh for Wallet Address if Metamask is connected"}
+                      : "Press Refresh for Wallet Address if TronLink is connected"}
                   </span>{" "}
                 </h6>
                 {!wallet_address ? (
@@ -709,7 +731,14 @@ export default function Home() {
                     className="grad_btn btn-block mx-4"
                     style={{ padding: "10px 15px" }}
                     onClick={() => {
-                     onConnectTron()
+                     onConnectTron().then((d)=>{
+                      setBalance(d.walletBalance);
+                     
+                          setContract(d?.contract);
+                          setWalletAddress(d.walletAddress);
+                          setJoiningPackage(d?.joiningPackage);
+                          setSmartBalance(d.contract_balance)
+                     })
                     }}
                   >
                     Connect Wallet
@@ -726,9 +755,10 @@ export default function Home() {
                   className="text-light"
                   style={{ margin: "10px 0px", fontSize: "15px" }}
                 >
-                  Wallet Balance: {" " + balance + " "} trx
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Joining Package{" "}
-                  {": " + parseInt(joiningPackage / 1e18)} trx ($ 100)
+                 <span style={{fontWeight:600, color:"#17b895"}}> Wallet Balance: </span>{" " + balance + " "} trx
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style={{fontWeight:600, color:"#17b895"}}>Joining Package{" "}</span> 
+                  {": " + 100} trx 
+                  {/* ($ 100) */}
                 </div>
                 <div className="col-md-8 col-lg-8 col-sm-8">
                   <div className="form-group">
@@ -756,7 +786,7 @@ export default function Home() {
                           if (wallet_address) {
                             if (ref_id1) {
                               setdisable(true);
-                              onRegistration(contract, wallet_address);
+                               onRegistration(contract, wallet_address);
                             } else {
                               NotificationManager.info(
                                 "Please provide Referral Id"
@@ -805,7 +835,7 @@ export default function Home() {
                   flexWrap: "wrap",
                 }}
               >
-                <h6>
+                <h6 >
                   Your Wallet address -{" "}
                   <span style={{ fontSize: "15px" }}>
                     {wallet_address
@@ -818,7 +848,7 @@ export default function Home() {
                 <h6>
                   Your Wallet Balance -{" "}
                   <span style={{ fontSize: "15px" }}>
-                    {balance ?? 0} BDLT
+                    {balance ?? 0} trx
                   </span>{" "}
                 </h6>
                 {viewmodeflag == 0 ? (
@@ -826,15 +856,22 @@ export default function Home() {
                     className="grad_btn btn-block mx-4"
                     style={{ padding: "10px 15px" }}
                     onClick={() => {
-                      onConnect()
-                        .then((d) => {
-                          console.log(d);
-                          setBalance(round(d?.balance));
-                          setContract(d?.contract);
-                          setWalletAddress(d?.userAddress);
-                          setJoiningPackage(d?.joiningPackage);
-                        })
-                        .catch((e) => console.log(e));
+                      // onConnect()
+                      //   .then((d) => {
+                      //     console.log(d);
+                      //     setBalance(round(d?.balance));
+                      //     setContract(d?.contract);
+                      //     setWalletAddress(d?.userAddress);
+                      //     setJoiningPackage(d?.joiningPackage);
+                      //   })
+                      //   .catch((e) => console.log(e));
+                      onConnectTron().then((d)=>{
+                        setBalance(round(d?.balance));
+                            setContract(d?.contract);
+                            setWalletAddress(d?.userAddress);
+                            setJoiningPackage(d?.joiningPackage);
+                            setSmartBalance(d.contract_balance)
+                      })
                     }}
                   >
                     Connect Wallet
@@ -864,11 +901,22 @@ export default function Home() {
             </div>
             <div className="col-md-4 col-sm-4 col-6">
               <div className="Personal_Details_inner">
-                <h4> Direct Sponsor </h4>
+                <h4> Your Community </h4>
                 <h5>{direct_sponcer}</h5>
               </div>
             </div>
+           
+
             <div className="col-md-4 col-sm-4 col-12">
+              <div className="Personal_Details_inner">
+                <h4>Your Sponser</h4>
+                <h5>{(directIncome).toFixed(2)} trx</h5>
+              </div>
+            </div>
+          </div>
+          {/* second row */}
+          <div className="row cus_row">
+          <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
                 <h4>Referred By</h4>
                 <h5>
@@ -876,30 +924,21 @@ export default function Home() {
                 </h5>
               </div>
             </div>
-          </div>
-          {/* second row */}
-          <div className="row cus_row">
-            <div className="col-md-4 col-sm-4 col-6">
+            <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
-                <h4>Direct Sponsor Income</h4>
-                <h5>{(directIncome).toFixed(2)} trx</h5>
-              </div>
-            </div>
-            <div className="col-md-4 col-sm-4 col-6">
-              <div className="Personal_Details_inner">
-                <h4>Stair Income</h4>
+                <h4>Total Investment</h4>
                 <h5>{(levelIncome).toFixed(2)} trx</h5>
               </div>
             </div>
             <div className="col-md-4 col-sm-4 col-12">
               <div className="Personal_Details_inner">
-                <h4>Total Available Income</h4>
+                <h4>Total Withdrawal</h4>
                 <h5>{round((roi ? Number(roi).toFixed(2) : 0) + (royaltyWallet ? Number(royaltyWallet).toFixed(2) : 0))} trx</h5>
               </div>
             </div>
           </div>
-          {/* Third row */}
-          <div className="row cus_row">
+         
+          {/* <div className="row cus_row">
             <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Total Income</h4>
@@ -912,19 +951,33 @@ export default function Home() {
                 <h5>{round(withdrawalAmt ? Number(withdrawalAmt).toFixed(2) : 0)} trx</h5>
               </div>
             </div>
-          </div>
-          {/* fourth row*/}
+          </div> */}
+         
           <div className="row cus_row">
-            <div className="col-md-6 col-sm-6 col-lg-6">
-              <div className="Personal_Details_inner Personal_bg">
-                <h4>Roi Income</h4>
-                <h5>{Number(roi).toFixed(2)} trx</h5>
+            <div className="col-md-12 col-sm-12 col-lg-12">
+              <div className="Personal_Details_inner Personal_bg withdraw_bg" style={{minHeight:"200px"}}>
+                <h4 className="text-center">Withdraw</h4>
+                <div className="row gy-2">
+                  <div className="col-md-4 col-12">
+                    <label>Total Earning:</label><br/>
+                    <input type="text" className="withdrawal_input" disabled value={100}/>
+                  </div>
+                  <div className="col-md-4 col-12">
+                  <label>Reinvestment:</label><br/>
+                  <input type="text" className="withdrawal_input" disabled value={20}/>
+                  </div>
+                  <div className="col-md-4 col-12">
+                  <label>Withdrawable Amount:</label><br/>
+                  <input type="text" className="withdrawal_input" disabled  value={20}/>
+                  </div>
+                </div>
+                
                 <button className="grad_btn my-2" onClick={onWithdraw}>
-                  Withdraw Roi
+                  Withdraw
                 </button>
               </div>
             </div>
-            <div className="col-md-6 col-sm-6 col-lg-6">
+            {/* <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Royalty Income</h4>
                 <h5>{royaltyWallet ? royaltyWallet : 0} trx</h5>
@@ -932,13 +985,13 @@ export default function Home() {
                   Withdraw Royalty
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
 
 
-      <section className="pb_50">
+     <section className="pb_50">
         <div className="container">
           <div className="all_heading text-center">
             <h2>
@@ -946,8 +999,8 @@ export default function Home() {
             </h2>
           </div>
           <div className="sm_container">
-            <div className="table_inner">
-              <div className="table-responsive gridtable">
+            <div className="table_inner table-responsive">
+              {/* <div className="table-responsive gridtable">
                 <DataTable
                   columns={requiredmembercolumn}
                   data={
@@ -960,12 +1013,71 @@ export default function Home() {
                   progressPending={false}
                   customStyles={customStyles}
                 />
-              </div>
+              </div> */}
+              <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Level</th>
+      <th scope="col">Count</th>
+      <th scope="col">Investment</th>
+      <th scope="col">Bonus</th>
+      <th scope="col" className="text-center">Details</th>
+    </tr>
+   
+   
+  </thead>
+  <tbody>
+    <tr>
+      <td >1</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"> <button className="grad_btn">View More</button> </td>
+    </tr>
+    <tr>
+      <td >2</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"><button className="grad_btn">View More</button></td>
+    </tr>
+    <tr>
+      <td >3</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"><button className="grad_btn ">View More</button></td>
+    </tr>
+    <tr>
+      <td >4</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"><button className="grad_btn ">View More</button></td>
+    </tr>
+    <tr>
+      <td >5</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"><button className="grad_btn ">View More</button></td>
+    </tr>
+    <tr>
+      <td >6</td>
+      <td>12</td>
+      <td>100</td>
+      <td>2</td>
+      <td className="d-flex justify-content-center"><button className="grad_btn ">View More</button></td>
+    </tr>
+   
+   
+  </tbody>
+</table>
             </div>
           </div>
         </div>
       </section>
-
+  {/*
       <section className="pb_50">
         <div className="container">
           <div className="all_heading text-center">
@@ -1104,9 +1216,55 @@ export default function Home() {
             )}
           </div>
         </div>
-      </section>
+      </section> */}
 
       <div>
+
+      <section className="pb_50">
+        <div className="container">
+          <div className="all_heading text-center">
+            <h2>
+              <span>FAQS</span>
+            </h2>
+            </div>
+            <div className="row  justify-content-center">
+              <div className="col-md-8 col-12 ">
+            <div class="accordion accordion-flush" id="accordionFlushExample">
+  <div class="accordion-item my-4">
+    <h2 class="accordion-header" id="flush-headingOne">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+      What is SuperTron?
+      </button>
+    </h2>
+    <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+      <div class="accordion-body">SuperTron is an independent that runs in tandem with the Tron Network. TRON is a decentralized, blockchain-based operating system with smart contract functionality, proof-of-stake principles as its consensus algorithm and a cryptocurrency native to the system, known as Tronix (TRX).</div>
+    </div>
+  </div>
+  <div class="accordion-item my-4">
+    <h2 class="accordion-header" id="flush-headingTwo">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+      Is Supertron need to register?
+      </button>
+    </h2>
+    <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+      <div class="accordion-body">To register you will need only a wallet Tron wallet - a Google Chrome extension (PC) and/or some other applications for mobile devices.</div>
+    </div>
+  </div>
+  <div class="accordion-item my-4">
+    <h2 class="accordion-header" id="flush-headingThree">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+      What is needed to participate in the project?
+      </button>
+    </h2>
+    <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+      <div class="accordion-body">Enough to have nearly any device with access to the Internet, smartphone, tablet, laptop or simply computer. Installed on the device and recharged Tron wallet. For communication with partners and support project recommend to install Telegram.</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+            </div>
+            </section>
         <footer>
           <div class="container">
             <div class="mt_20">
@@ -1114,7 +1272,7 @@ export default function Home() {
               <img
                 src="./img/logo.png"
                 className="img img-fluid"
-                style={{ width: "150px" }}
+                style={{ width: "150px",marginBottom:"10px" }}
               />
             </div>
 
@@ -1138,19 +1296,19 @@ export default function Home() {
                 <a
                   style={{ borderRadius: "10px" }}
                   className="grad_btn px-3 text-light mx-2"
-                  href={`https://explorer.bdltscan.io/address/${CONTRACT_ADDRESS}/contracts`}
+                  href={`https://shasta.tronscan.org/#/contract/${CONTRACT_ADDRESS}/transactions`}
                   target="_blank"
                 >
-                  <img
+                  {/* <img
                     src="/icon_lg.png"
                     className="mx-2"
                     style={{ width: "30px" }}
-                  />
+                  /> */}
                   Smart Contract info
                 </a>
                  <a
                   class="grad_btn my-3 mt-4"
-                  href="https://bdltcommunity.io/support/Login.php"
+                  href={`https://shasta.tronscan.org/#/contract/${CONTRACT_ADDRESS}/transactions`}
                   target="_blank"
                 >
                   <span className="mx-2">
