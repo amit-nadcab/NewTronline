@@ -9,7 +9,7 @@ import { BiLogIn } from "react-icons/bi";
 //      eventServer = new HttpProvider(config?.TRON?.rpc),
 //     //  privateKey = "997af1ce8fe2af79f3448133f7d916d7a4a3fa7995f8db6c05d3d8d9b4759898";
 //   });
-export const CONTRACT_ADDRESS = "TWYcq45CDSCo1Z4A8hNNxLza8eAeo1SVir";
+export const CONTRACT_ADDRESS = "TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD";
 
   export const onConnectTron = async () => {
     return new Promise(async (resolve, reject) => {
@@ -21,15 +21,14 @@ export const CONTRACT_ADDRESS = "TWYcq45CDSCo1Z4A8hNNxLza8eAeo1SVir";
         if(res.code==200){
           const tronweb = window.tronWeb
           const user_tron = tronweb.defaultAddress.base58;
-          
            const userBalance = await tronweb.trx.getBalance(user_tron);
-           const contractBalance = await tronweb.trx.getBalance('TWYcq45CDSCo1Z4A8hNNxLza8eAeo1SVir');
+           const contractBalance = await tronweb.trx.getBalance('TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD');
            console.log(contractBalance,"contractBalance");
            resolve({
             walletAddress:user_tron,
             walletBalance:Math.round(userBalance/1e6),
             joiningPackage:100,
-            contract:"TWYcq45CDSCo1Z4A8hNNxLza8eAeo1SVir",
+            contract:"TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD",
             contract_balance:contractBalance
             // instance:instance
            })

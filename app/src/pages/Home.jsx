@@ -436,7 +436,7 @@ export default function Home() {
       if (balance >= joinAmount) {
         console.log("refferal Id::", ref_id1, joinAmount,wallet_address,contract);
         tContract
-          .isExist("3999")
+          .isExist(3999)
           .call()
           .then((is_exist) => {
             console.log(is_exist,"is_exist")
@@ -446,19 +446,24 @@ export default function Home() {
                 .idToAddress(ref_id1)
                 .call()
                 .then((d) => {
-                  console.log("Refferal Address ::", d);
+                  console.log("Refferal Address ::","10000000000000000000",3999, d);
                   if (d !== "0x0000000000000000000000000000000000000000") {
-                    tContract.methods
-                      .Invest("100000000",d)
+                    tContract
+                      .Invest("10000000",3999)
                       .send({
-                        from: wallet_address,
-                        value: 0,
-                        // value: 0,
+                        feeLimit: 20000000,
+                        callValue:"10000000"
                       })
-                      .then((d) => {
+                      .then(async(d) => {
+                        console.log(d,"ddd");
                         setspin("");
                         setdisable(false);
                         setReflect(!reflect);
+                       const transaction = await window.tronWeb.trx.getTransaction(d);
+                       console.log(transaction.ret[0].contractRet,"transaction");
+                       if(transaction.ret[0].contractRet=="REVERT"){
+                        NotificationManager.error("Execution Reverted.")
+                       }
                       })
                       .catch((e) => {
                         console.log("Error :: ", e);
@@ -478,6 +483,7 @@ export default function Home() {
                 })
                 .catch((e) => {
                   console.log("Error:: ", e);
+                  NotificationManager.error(e)
                   setspin("");
                   setdisable(false);
                 });
@@ -559,26 +565,34 @@ export default function Home() {
   }
 
   async function onWithdraw() {
-    if (viewmodeflag) {
-      NotificationManager.info(
-        "Withdraw is not available in view mode!"
-      );
-    } else {
+    const tContract = await getTronContract()
+    // if (viewmodeflag) {
+    //   NotificationManager.info(
+    //     "Withdraw is not available in view mode!"
+    //   );
+    // } else {
       setspin3("spinner-border spinner-border-sm");
-      contract?.methods
-        ?.withdraw()
-        .send({ from: wallet_address, value: 0 })
-        .then((d) => {
+      tContract
+        ?.Withdraw()
+        .send({ feeLimit: 2000,
+          callValue:0})
+        .then(async (d) => {
           console.log("Data:", d);
           setspin3("");
           setReflect(!reflect);
+          const transaction = await window.tronWeb.trx.getTransaction(d);
+          console.log(transaction,"transaction");
+          if(transaction.ret[0].contractRet=="OUT_OF_ENERGY"){
+            NotificationManager.error(transaction.ret[0].contractRet)
+           }
         })
         .catch((e) => {
           console.log("Error:: ", e);
           setspin3("");
           setReflect(!reflect);
+          NotificationManager.error(e)
         });
-    }
+    // }
   }
 
   return (
@@ -637,7 +651,7 @@ export default function Home() {
               {" "}
               Supertron is a crowd funding market with a unique platform which brings the transparency with the secured and promising network. All Funds
               are store in Smart Contract and members can withdraw their reward
-              directly from Smart contract. Get 200% Return On Investment .
+              directly from Smart contract.
             </p>
           </div>
         </div>
@@ -645,19 +659,19 @@ export default function Home() {
       <section>
         <div className="container">
           <div className="row cus_row">
-            <div className="col-md-6 col-sm-6 col-12  ">
+            <div className=" col-12  ">
               <div className="Personal_Details_inner">
                 <h4> Smart Contract Address </h4>
                 <h5><a href={`https://shasta.tronscan.org/#/contract/${CONTRACT_ADDRESS}/transactions`} target={"_blank"} style={{ color: "white", textDecoration: "none" }}>{CONTRACT_ADDRESS.substr(0, 5)}....{CONTRACT_ADDRESS.substr(-8)}<FiExternalLink size={18} className="mx-1 pb-1" color="white" /></a></h5>
               </div>
             </div>
 
-            <div className="col-md-6 col-sm-6 col-12">
+            {/* <div className="col-md-6 col-sm-6 col-12">
               <div className="Personal_Details_inner">
                 <h4>Contract Balance </h4>
                 <h5>{round(smartBalance)} trx</h5>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -1272,7 +1286,7 @@ export default function Home() {
               <img
                 src="./img/logo.png"
                 className="img img-fluid"
-                style={{ width: "150px",marginBottom:"10px" }}
+                style={{ width: "220px",marginBottom:"10px" }}
               />
             </div>
 
@@ -1332,7 +1346,7 @@ export default function Home() {
                     <BsTelegram size={24} color="white" />
                   </span>
                   <a
-                    href="https://t.me/+7tHV4QkwDeEyOGM9"
+                    href="#"
                     className="text-light"
                     target="_blank"
                   >
