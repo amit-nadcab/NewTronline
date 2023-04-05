@@ -9,7 +9,7 @@ import { BiLogIn } from "react-icons/bi";
 //      eventServer = new HttpProvider(config?.TRON?.rpc),
 //     //  privateKey = "997af1ce8fe2af79f3448133f7d916d7a4a3fa7995f8db6c05d3d8d9b4759898";
 //   });
-export const CONTRACT_ADDRESS = "TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD";
+export const CONTRACT_ADDRESS = "TQPfCqZMF9NotzQfeyCMqCePiBdAmpTAJn";
 
   export const onConnectTron = async () => {
     return new Promise(async (resolve, reject) => {
@@ -22,13 +22,13 @@ export const CONTRACT_ADDRESS = "TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD";
           const tronweb = window.tronWeb
           const user_tron = tronweb.defaultAddress.base58;
            const userBalance = await tronweb.trx.getBalance(user_tron);
-           const contractBalance = await tronweb.trx.getBalance('TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD');
+           const contractBalance = await tronweb.trx.getBalance('TQPfCqZMF9NotzQfeyCMqCePiBdAmpTAJn');
            console.log(contractBalance,"contractBalance");
            resolve({
             walletAddress:user_tron,
             walletBalance:Math.round(userBalance/1e6),
             joiningPackage:100,
-            contract:"TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD",
+            contract:"TQPfCqZMF9NotzQfeyCMqCePiBdAmpTAJn",
             contract_balance:contractBalance
             // instance:instance
            })
@@ -53,7 +53,7 @@ export const CONTRACT_ADDRESS = "TWo8FrtwEbg4697TNHPEWPNicEaWJJkbPD";
   };
 
   export function getTronContract() {
-    return window.tronWeb.contract().at("TWYcq45CDSCo1Z4A8hNNxLza8eAeo1SVir");
+    return window.tronWeb.contract().at("TQPfCqZMF9NotzQfeyCMqCePiBdAmpTAJn");
   }
 
 

@@ -45,6 +45,12 @@ height: 678px;
   position:absolute;
   top:-130px
 } */
+.modal-header {
+  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+}
+.modal-body {
+  background-color: #ffeaaf;
+}
 
 @media (max-width: 620px) {
   .banner_text {
@@ -79,7 +85,6 @@ height: 678px;
 }
 
 @media (max-width: 550px) {
-
   .mh,
   .asm {
     margin-top: 30px;
@@ -138,7 +143,7 @@ height: 678px;
 
 .all_heading h2 span {
   color: transparent;
-  background:linear-gradient(90deg, #74EBD5 0%, #da934a 100%);
+  background: linear-gradient(90deg, #74ebd5 0%, #da934a 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -233,7 +238,7 @@ button:hover {
   width: 100%;
 }
 
-#cell-4-undefined>div {
+#cell-4-undefined > div {
   white-space: normal !important;
 }
 
@@ -242,13 +247,13 @@ hr {
   height: 1px;
 }
 
-.all_heading>h2>span,
-.all_heading>h2 {
+.all_heading > h2 > span,
+.all_heading > h2 {
   text-transform: uppercase;
 }
 
 .sc-iwjdpV {
-  background:#303f6c !important;
+  background: #303f6c !important;
   color: #fff !important;
   font-size: 15px;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -263,30 +268,42 @@ hr {
 .Personal_Details_inner {
   background: #616974;
   border-radius: 5px;
+
   color: #fff;
   margin: 10px 0;
   text-align: center;
   padding: 30px 10px;
   position: relative;
-  background-color: #3bc3aa;
-background-image: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
-height:137px
-
+  background-color: transparent;
+  /* background-image: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%); */
+  /* background: url(./Component/images/Asset1.png); */
+  background-repeat: no-repeat;
+  background-size: contain;
+  height: 137px;
 }
-.withdrawal_input{
+.Personal_Details_inner_large {
+
+
+  /* background-image: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%); */
+  /* background: url(./Component/images/Asset3.png) !important; */
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+ 
+}
+.withdrawal_input {
   background: transparent;
-  border:2px solid #dc913a;
-  outline:none;
+  border: 2px solid #dc913a;
+  outline: none;
   padding: 5px;
-  border-radius:5px;
-  color:#fff;
-  font-weight:bold;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: bold;
   pointer-events: none;
   cursor: none;
 }
-.withdrawal_input input{
-  color:#fff;
-  font-weight:bold
+.withdrawal_input input {
+  color: #fff;
+  font-weight: bold;
 }
 
 .vipbox {
@@ -316,7 +333,6 @@ height:137px
   font-size: 16px;
   color: #fff;
   font-weight: 900;
-  ;
 }
 
 .viphead {
@@ -365,7 +381,7 @@ td {
   border: 0.1px solid rgba(34, 195, 221, 0.4) !important;
 }
 
-.sc-iwjdpV>div {
+.sc-iwjdpV > div {
   padding: 3px !important;
 }
 
@@ -416,8 +432,8 @@ a:not([href]):not([class]) {
   height: 33px;
 }
 
-thead{
-  background:linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%) ;
+thead {
+  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
   color: #fff;
 }
 
@@ -441,7 +457,7 @@ thead{
 
 .table tbody td {
   padding: 5px;
-  background: #000349;
+  background: #04b59970;
 }
 
 .table-bordered td,
@@ -449,7 +465,8 @@ thead{
   border: 1px solid #32defa;
 }
 
-element.style {}
+element.style {
+}
 
 .table tbody td {
   padding: 20px;
@@ -514,7 +531,7 @@ element.style {}
 .rdt_TableRow {
   background: transparent !important;
 }
-.notification-info{
+.notification-info {
   background-color: #3bc3aa !important;
 }
 
@@ -523,7 +540,6 @@ element.style {}
   color: white !important;
   min-height: 40px !important;
 }
-
 
 /* #row-2,
 #row-1, 
@@ -556,27 +572,34 @@ element.style {}
   padding: 10px;
   width: 100%;
 }
-.cus_input::placeholder{
-  color:#e2dfdf
+.cus_input::placeholder {
+  color: #e2dfdf;
 }
-.accordion-body{
-  color:#000;
-  background: #ffeaaf;
+.index{
+  z-index: 1 !important;
+}
+.accordion-body {
+  color: #fff;
+  background: #04b59970;
 }
 .table tbody td {
   padding: 5px;
-  background: #ffeaaf;
+  background: #04b59970;
   border: none !important;
+  color: #fff;
   padding-left: 10px;
 }
-
-.accordion-button:not(.collapsed){
-  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
-  color:#f1f1f1
+.accordion-item{
+  background-color: #04b59970;
 }
-.accordion-button{
+
+.accordion-button:not(.collapsed) {
   background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
-  color:#fff
+  color: #f1f1f1;
+}
+.accordion-button {
+  background: linear-gradient(90deg, #3bc3aa 0%, #dc913a 100%);
+  color: #fff;
 }
 @media only screen and (max-width: 760px) {
   .trx_btn li {
@@ -588,8 +611,8 @@ element.style {}
     table-layout: fixed;
     width: 100%;
   }
-  .withdraw_bg{
-    min-height:300px !important
+  .withdraw_bg {
+    min-height: 300px !important;
   }
 
   .gridtable tbody {
