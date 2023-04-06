@@ -58,7 +58,7 @@ export const CONTRACT_ADDRESS = "TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2";
   };
 
   export function getTronContract() {
-    return window.tronWeb.contract().at("TQPfCqZMF9NotzQfeyCMqCePiBdAmpTAJn");
+    return window.tronWeb.contract().at("TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2");
   }
 
 

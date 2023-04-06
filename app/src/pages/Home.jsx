@@ -78,7 +78,8 @@ export default function Home() {
     oldUser: false,
     totalAmountInvested: 0,
     totalWithdrawlAMount: 0,
-  });
+  }); 
+  const[topDAta,setTopData] =useState({globalCommunity:0,totalInvestment:0,totalWithdrawl:0})
   const [tTable,setTTable] = useState([])
   
 
@@ -156,10 +157,11 @@ export default function Home() {
       })
      
     });
-    // const investment = await t.totalInvestment().call().then(())
-  //  const withdrawal =  await t.totalWithdrwal().call()
-  //  const lastId =  await t.idProvider().call()
-    // console.log(withdrawal,"lastId");
+     const investment = await t.totalInvestment().call()
+  const withdrawal =  await t.totalWithdrwal().call()
+   const lastId =  await t.idProvider().call()
+    console.log( (Number(lastId._hex)-1)-3999,"lastId");
+    setTopData({globalCommunity:(Number(lastId._hex)-1)-3999,totalInvestment:Number(investment._hex/1e6),totalWithdrawl:Number(withdrawal._hex/1e6)})
     // let tab =[]
     // for(var i=1; i<=6;i++){
     //   const table = await t.getTableData(1,wallet_address).call()
@@ -169,6 +171,7 @@ export default function Home() {
   })()
 }
  },[wallet_address,reflect])
+
 
 
  
@@ -504,7 +507,8 @@ export default function Home() {
       //   console.log(e);
       // });
     }
-  }, [wallet_address, reflect]);
+   
+  }, [wallet_address]);
 
   function toFixed(x) {
     if (Math.abs(x) < 1.0) {
@@ -577,6 +581,8 @@ export default function Home() {
                           NotificationManager.error("Execution Reverted.");
                         }else if(transaction.ret[0].contractRet == "SUCCESS"){
                           NotificationManager.success("Transaction Successfull.");
+                        }else{
+                          NotificationManager.info(transaction.ret[0].contractRet)
                         }
                       })
                      
@@ -759,7 +765,7 @@ export default function Home() {
                 style={{ flexDirection: "column" }}
               >
                 <a
-                  // href="/BDLT.pdf"
+                 href="/www.supertron.club.pdf"
                   className="grad_btn btn-block text-light my-2 "
                   style={{ padding: "10px 55px" }}
                   target="_blank"
@@ -835,7 +841,7 @@ export default function Home() {
                 <img src="/img/Asset1.png" alt="img" className="position-absolute img-fluid" style={{top:"0px", left:"0px",width:"100%"}}/>
                 <div className="position-relative index ">
                 <h4>Global Community</h4>
-                <h5>{total_member}+</h5>
+                <h5>{topDAta?.globalCommunity}+</h5>
                 </div>
               </div>
             </div>
@@ -844,7 +850,7 @@ export default function Home() {
               <img src="/img/Asset1.png" alt="img" className="position-absolute img-fluid" style={{top:"0px", left:"0px",width:"100%"}}/>
               <div className="position-relative index ">
                 <h4> Total Investment </h4>
-                <h5>{round(total_investment)} trx</h5>
+                <h5>{round(topDAta.totalInvestment)} trx</h5>
                 </div>
               </div>
             </div>
@@ -853,7 +859,7 @@ export default function Home() {
               <img src="/img/Asset1.png" alt="img" className="position-absolute img-fluid" style={{top:"0px", left:"0px",width:"100%"}}/>
               <div className="position-relative index ">
                 <h4> Total Withdrawal Distributed</h4>
-                <h5>{round(total_withdraw)} trx</h5>
+                <h5>{round(topDAta.totalWithdrawl)} trx</h5>
                 </div>
               </div>
             </div>
@@ -897,9 +903,10 @@ export default function Home() {
                     {wallet_address
                       ? wallet_address.substr(0, 10) +
                         "......." +
-                        wallet_address.substr(25)
+                        wallet_address.substr(25) 
                       : "Press Refresh for Wallet Address if TronLink is connected"}
-                  </span>{" "}
+                     
+                  </span>
                 </h6>
                 {!wallet_address ? (
                   <button
