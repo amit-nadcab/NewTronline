@@ -41,7 +41,7 @@ export default function Home() {
   const [withdrawalAmt, setWithdrawAmt] = useState(0);
   const [withdraw, setWithdraw] = useState([]);
   const [contract, setContract] = useState("");
-  const [joinAmount, setjoinAmount] = useState(0);
+  const [joinAmount, setjoinAmount] = useState(100);
   const [ref_id, setref_id] = useState(0);
   const [levelIncome, setLevelIncome] = useState(0);
   const [directIncome, setDirectIncome] = useState(0);
@@ -154,7 +154,12 @@ export default function Home() {
         totalAmountInvested: Number(d?.totalAmountInvested._hex),
         totalWithdrawlAMount: Number(d?.totalAmountInvested._hex),
       })
+     
     });
+    // const investment = await t.totalInvestment().call().then(())
+  //  const withdrawal =  await t.totalWithdrwal().call()
+  //  const lastId =  await t.idProvider().call()
+    // console.log(withdrawal,"lastId");
     // let tab =[]
     // for(var i=1; i<=6;i++){
     //   const table = await t.getTableData(1,wallet_address).call()
@@ -681,9 +686,15 @@ export default function Home() {
     //     "Withdraw is not available in view mode!"
     //   );
     // } else {
-    setspin3("spinner-border spinner-border-sm");
-    tContract
-      ?.Withdraw()
+   
+    if(wallet_address){
+      setspin3("spinner-border spinner-border-sm");
+      console.log(wallet_address,"wallet")
+     if(userInvestment.totalIncentiveEarned>=Number(withdrawalAmt)){
+     console.log(userInvestment.totalIncentiveEarned,Number(withdrawalAmt),"amt")
+
+      await tContract
+      ?.Withdraw(withdrawalAmt*1e6)
       .send({ feeLimit: 5000000, callValue: 0 })
       .then(async (d) => {
         console.log("Data12:", d);
@@ -699,10 +710,22 @@ export default function Home() {
       })
       .catch((e) => {
         console.log("Error:: ", e);
+        NotificationManager.error(e);
         setspin3("");
         setReflect(!reflect);
         NotificationManager.error(e);
       });
+     }else{
+      NotificationManager.info("Entered wrong incentive amount.")
+      setspin3("")
+     }
+
+
+    }else{
+      NotificationManager.info("wallet not connected")
+      setspin3("")
+    }
+
     // }
   }
 
@@ -883,6 +906,7 @@ export default function Home() {
                     className="grad_btn btn-block mx-4"
                     style={{ padding: "10px 15px" }}
                     onClick={() => {
+                      if(window.tronWeb != undefined){
                       onConnectTron().then((d) => {
                         setBalance(d.walletBalance);
 
@@ -891,6 +915,9 @@ export default function Home() {
                         setJoiningPackage(d?.joiningPackage);
                         setSmartBalance(d.contract_balance);
                       });
+                    }else{
+                      NotificationManager.info("TronLink Wallet is not installed.","Info")
+                    }
                     }}
                   >
                     Connect Wallet
@@ -1186,10 +1213,22 @@ export default function Home() {
                     <label>Total Earning:</label>
                     <br />
                     <input
+                      type="number"
+                      className="withdrawal_input_1 position-relative"
+                      onChange = {(e)=>setWithdrawAmt(e.target.value?.trim())}
+                      
+                      value={withdrawalAmt}
+                    />
+                  </div>
+                 
+                  <div className="col-md-4 col-12">
+                    <label>Withdrawable Amount:</label>
+                    <br />
+                    <input
                       type="text"
                       className="withdrawal_input"
                       disabled
-                      value={(userInvestment.UserAmount/ 1e6).toFixed(2)}
+                      value={(Number(withdrawalAmt) *(80/100))}
                     />
                   </div>
                   <div className="col-md-4 col-12">
@@ -1199,17 +1238,7 @@ export default function Home() {
                       type="text"
                       className="withdrawal_input"
                       disabled
-                      value={((userInvestment.UserAmount/ 1e6 ) *(20/100)).toFixed(2)}
-                    />
-                  </div>
-                  <div className="col-md-4 col-12">
-                    <label>Withdrawable Amount:</label>
-                    <br />
-                    <input
-                      type="text"
-                      className="withdrawal_input"
-                      disabled
-                      value={((userInvestment.UserAmount / 1e6) *(80/100)).toFixed(2)}
+                      value={(Number(withdrawalAmt ) *(20/100))}
                     />
                   </div>
                 </div>

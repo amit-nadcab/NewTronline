@@ -301,6 +301,16 @@ hr {
   pointer-events: none;
   cursor: none;
 }
+.withdrawal_input_1{
+  background: transparent;
+  border: 2px solid #dc913a;
+  outline: none;
+  padding: 5px;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: bold;  
+  z-index: 1;
+}
 .withdrawal_input input {
   color: #fff;
   font-weight: bold;
