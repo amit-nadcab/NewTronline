@@ -1,6 +1,5 @@
 // const TronWeb = require('tronweb');
 
-import { BiLogIn } from "react-icons/bi";
 
 // const HttpProvider = TronWeb.providers.HttpProvider;
 // const tronWeb = new TronWeb({
@@ -9,7 +8,7 @@ import { BiLogIn } from "react-icons/bi";
 //      eventServer = new HttpProvider(config?.TRON?.rpc),
 //     //  privateKey = "997af1ce8fe2af79f3448133f7d916d7a4a3fa7995f8db6c05d3d8d9b4759898";
 //   });
-export const CONTRACT_ADDRESS = "TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2";
+export const CONTRACT_ADDRESS = "TMWFFjU3A13V2R5VrLeQkKJhKDr17guKZ7";
 
   export const onConnectTron = async () => {
     return new Promise(async (resolve, reject) => {
@@ -24,13 +23,13 @@ export const CONTRACT_ADDRESS = "TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2";
           const tronweb = window.tronWeb
           const user_tron = tronweb.defaultAddress.base58;
            const userBalance = await tronweb.trx.getBalance(user_tron);
-           const contractBalance = await tronweb.trx.getBalance('TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2');
+           const contractBalance = await tronweb.trx.getBalance('TMWFFjU3A13V2R5VrLeQkKJhKDr17guKZ7');
            console.log(contractBalance,"contractBalance");
            resolve({
             walletAddress:user_tron,
             walletBalance:Math.round(userBalance/1e6),
             joiningPackage:100,
-            contract:"TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2",
+            contract:"TMWFFjU3A13V2R5VrLeQkKJhKDr17guKZ7",
             contract_balance:contractBalance
             // instance:instance
            })
@@ -58,7 +57,7 @@ export const CONTRACT_ADDRESS = "TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2";
   };
 
   export function getTronContract() {
-    return window.tronWeb.contract().at("TJp6195fjpaGGt37MNfQojTgAQmaYCz3m2");
+    return window.tronWeb.contract().at("TMWFFjU3A13V2R5VrLeQkKJhKDr17guKZ7");
   }
 
 

@@ -300,6 +300,11 @@ hr {
   font-weight: bold;
   pointer-events: none;
   cursor: none;
+  /* -webkit-appearance: none; */
+}
+input[type=number] {
+  -moz-appearance: textfield;
+  -webkit-appearance: textfield;
 }
 .withdrawal_input_1{
   background: transparent;

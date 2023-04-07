@@ -117,42 +117,34 @@
         if (e.data.message && e.data.message.action == "setNode") {
             console.log("setNode event", e.data.message)
            
-          
-       
-      
-          
-       // Tronlink chrome v3.22.1 & Tronlink APP v4.3.4 started to support 
         if (e.data.message && e.data.message.action == "disconnect") {
             console.log("disconnect event", e.data.message.isTronLink);
             window.location.reload()
         }
           
-       // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support 
+     
         if (e.data.message && e.data.message.action == "accountsChanged") {
             console.log("accountsChanged event", e.data.message)
             console.log("current address:", e.data.message.data.address)
             window.location.reload()
         }
           
-       // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support  
-       
-          
-       // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support   
+      
         if (e.data.message && e.data.message.action == "accountsChanged") {
             console.log("accountsChanged event", e.data.message)
-            // window.location.reload()
+        
         }
           
-        // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support      
+          
         if (e.data.message && e.data.message.action == "acceptWeb") {
             console.log("acceptWeb event", e.data.message)
         }
-        // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support      
+            
         if (e.data.message && e.data.message.action == "disconnectWeb") {
             console.log("disconnectWeb event", e.data.message)
         }
           
-        // Tronlink chrome v3.22.0 & Tronlink APP v4.3.4 started to support     
+        
         if (e.data.message && e.data.message.action == "rejectWeb") {
             console.log("rejectWeb event", e.data.message)
             alert("Transaction Rejected.")
@@ -161,14 +153,7 @@
         }
     })
 }
-// var obj = setInterval(async ()=>{
-//       //if (window.tronLink.tronWeb)
-//         if (window.tronWeb) {
-//             clearInterval(obj)
-//           //let tronweb = window.tronLink.tronWeb
-//             let tronweb = window.tronWeb
-//         }
-//     }, 10)
+
  
 </script>
 </html>

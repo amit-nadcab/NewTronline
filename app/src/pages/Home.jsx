@@ -562,7 +562,7 @@ export default function Home() {
                    const invest =  tContract
                       .Invest(10000000,ref_id1)
                       .send({
-                        feeLimit: 50000000,
+                        feeLimit: 80000000,
                         callValue: 10000000,
                       })
                       .then(async (d) => {
@@ -1166,7 +1166,23 @@ export default function Home() {
             </div>
           </div> */}
            <div className="row cus_row">
-            <div className="col-md-12 col-sm-12 col-lg-12">
+
+           <div className="col-md-6 col-sm-12 col-lg-6">
+              <div
+                className="Personal_Details_inner Personal_bg  Personal_Details_inner_large position-relative"
+                style={{ minHeight: "50px" }}
+              >
+                 <img src="/img/Asset3.png" alt="img" className="position-absolute" style={{top:"0px", left:"0px",width:"100%", height:"100%"}}/>
+                <div className="position-relative index ">
+
+                <h4 className="text-center">My Community:</h4>
+                   <h5>0</h5>
+                    </div>
+                 
+              </div>
+            </div>
+
+            <div className="col-md-6 col-sm-12 col-lg-6">
               <div
                 className="Personal_Details_inner Personal_bg  Personal_Details_inner_large position-relative"
                 style={{ minHeight: "50px" }}
@@ -1195,6 +1211,7 @@ export default function Home() {
                  
               </div>
             </div>
+           
             {/* <div className="col-md-6 col-sm-6 col-lg-6">
               <div className="Personal_Details_inner Personal_bg">
                 <h4>Royalty Income</h4>
@@ -1208,13 +1225,18 @@ export default function Home() {
 
           <div className="row cus_row">
             <div className="col-md-12 col-sm-12 col-lg-12">
+            <div className="all_heading text-center">
+            <h2>
+              <span>Withdraw</span>
+            </h2>
+          </div>
               <div
                 className="Personal_Details_inner Personal_bg withdraw_bg Personal_Details_inner_large"
                 style={{ minHeight: "200px" }}
               >
                  <img src="/img/Asset3.png" alt="img" className="position-absolute" style={{top:"0px", left:"0px",width:"100%", height:"100%"}}/>
                 <div > 
-                <h4 className="text-center">Withdraw</h4>
+                {/* <h4 className="text-center">Withdraw</h4> */}
                 <div className="row gy-2">
                   <div className="col-md-4 col-12">
                     <label>Total Earning:</label>
